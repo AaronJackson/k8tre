@@ -1,0 +1,13 @@
+# https://artifacthub.io/packages/helm/crossplane/crossplane
+
+# https://marketplace.upbound.io/providers/upbound/provider-family-aws/v2.1.1
+
+# configuration:
+#   packages:
+
+provider:
+  packages:
+    - xpkg.upbound.io/upbound/provider-aws-ec2:2.1.1
+    - xpkg.upbound.io/upbound/provider-aws-iam:2.1.1
+    - xpkg.upbound.io/upbound/provider-aws-kms:2.1.1
+    - xpkg.upbound.io/upbound/provider-aws-vpc:2.1.1

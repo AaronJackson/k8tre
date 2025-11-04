@@ -17,3 +17,4 @@ resources:
   - identity/keycloak.yaml
   - workspaces/awms.yaml
   - workspaces/jupyterhub.yaml
+  - workspaces/crossplane.yaml
