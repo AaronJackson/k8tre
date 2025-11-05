@@ -18,3 +18,4 @@ resources:
   - workspaces/awms.yaml
   - workspaces/jupyterhub.yaml
   - workspaces/crossplane.yaml
+  - workspaces/pulumi.yaml
