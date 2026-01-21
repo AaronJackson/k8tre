@@ -16,6 +16,7 @@ resources:
   - agnostics/storage-class.yaml
   - identity/keycloak.yaml
   - workspaces/awms.yaml
+  - workspaces/aws-ack.yaml
   - workspaces/jupyterhub.yaml
   - workspaces/crossplane.yaml
   - workspaces/pulumi.yaml

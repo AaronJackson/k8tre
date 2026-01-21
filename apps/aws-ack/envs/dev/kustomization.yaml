@@ -1,0 +1,17 @@
+# https://aws-controllers-k8s.github.io/docs/getting-started-helm
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# https://github.com/aws-controllers-k8s/ec2-controller/tree/v1.9.2/helm
+helmCharts:
+  - name: ec2-chart
+    repo: oci://public.ecr.aws/aws-controllers-k8s
+    version: 1.9.2
+    releaseName: aws-ack
+    namespace: aws-ack
+    # Note CRDs are not upgraded
+    includeCRDs: true
+    valuesInline:
+      aws:
+        region: eu-west-2
