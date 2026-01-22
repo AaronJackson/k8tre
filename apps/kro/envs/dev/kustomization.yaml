@@ -1,0 +1,14 @@
+# https://kro.run/docs/getting-started/Installation
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# https://github.com/aws-controllers-k8s/ec2-controller/tree/v1.9.2/helm
+helmCharts:
+  - name: kro
+    repo: oci://registry.k8s.io/kro/charts
+    version: 0.7.1
+    releaseName: kro
+    namespace: kro
+    # Note CRDs are not upgraded
+    includeCRDs: true

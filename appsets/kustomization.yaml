@@ -18,5 +18,6 @@ resources:
   - workspaces/awms.yaml
   - workspaces/aws-ack.yaml
   - workspaces/jupyterhub.yaml
+  - workspaces/kro.yaml
   - workspaces/crossplane.yaml
   - workspaces/pulumi.yaml
