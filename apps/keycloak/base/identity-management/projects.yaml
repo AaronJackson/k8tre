@@ -27,6 +27,15 @@ spec:
         env:
           PROJECT_NAME: "asthma"
           WORKSPACE: "/asthma/ws1"
+    - display_name: "Asthma MATE Desktop"
+      description: "A Ubuntu MATE Desktop"
+      slug: "asthma-desktop1"
+      kubespawner_override:
+        image: "ghcr.io/manics/jupyter-desktop-mate:latest"
+        env:
+          PROJECT_NAME: "asthma"
+          WORKSPACE: "/asthma/ws1"
+
 ---
 apiVersion: research.k8tre.io/v1alpha1
 kind: Project
