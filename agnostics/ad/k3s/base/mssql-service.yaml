@@ -1,0 +1,126 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mssql-data
+  namespace: ad
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: local-path
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mssql.conf
+  namespace: ad
+data:
+  mssql.conf: |
+    [network]
+    privilegedadaccount = MSSQL
+    kerberoskeytabfile = /var/opt/mssql/secrets/mssql.keytab
+    disablesssd = true
+    enablekdcfromkrb5conf = true
+    fqdnadusernamesenabled = true
+
+  logger.ini: |
+    [Output:security]
+    Type = File
+    Filename = /var/opt/mssql/log/security.log
+
+    [Logger]
+    Level = Silent
+
+    [Logger:security.kerberos]
+    Level = debug
+    Outputs = security
+    [Logger:security.ldap]
+    Level = debug
+    Outputs = security
+    
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mssql
+  namespace: ad
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mssql
+  template:
+    metadata:
+      labels:
+        app: mssql
+    spec:
+      hostname: sql      
+      volumes:
+        - name: mssql-data
+          persistentVolumeClaim:
+            claimName: mssql-data
+        - name: mssql-keytab
+          configMap:
+            name: mssql.keytab
+            defaultMode: 0660
+        - name: krb5
+          configMap:
+            name: krb5.conf
+            defaultMode: 0444
+        - name: mssql-conf
+          configMap:
+            name: mssql.conf
+            defaultMode: 444
+      securityContext:
+        fsGroup: 10001            
+      containers:
+        - name: mssql
+          image: docker.io/library/mssql-k8tre:latest
+          imagePullPolicy: Never
+          env:
+            - name: "ACCEPT_EULA"
+              value: "Y"
+            - name: "MSSQL_SA_PASSWORD"
+              value: "X2T%Tp5b89V%WzXD!tq"
+            - name: "KRB5_TRACE"
+              value: "/dev/stdout"
+          volumeMounts:
+            - name: mssql-data
+              mountPath: /var/opt/mssql/data
+            - name: mssql-keytab
+              subPath: mssql.keytab
+              mountPath: /var/opt/mssql/secrets/mssql.keytab
+            - name: krb5
+              subPath: config
+              mountPath: /etc/krb5.conf
+            - name: mssql-conf
+              subPath: mssql.conf
+              mountPath: /var/opt/mssql/mssql.conf
+            - name: mssql-conf
+              subPath: logger.ini
+              mountPath: /var/opt/mssql/logger.ini              
+          ports:
+            - containerPort: 1433
+              protocol: TCP
+      dnsConfig:
+        searches:
+          - "ad.${ENVIRONMENT}.${DOMAIN}"
+          - "${ENVIRONMENT}.${DOMAIN}"
+              
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql
+  namespace: ad
+spec:
+  selector:
+    app: mssql
+  ports:
+    - name: mssql
+      port: 1433
+      targetPort: 1433
+      protocol: TCP
