@@ -79,7 +79,7 @@ hub:
       c.KubeSpawner.volumes.append({
         "name": "keytab",
         "configMap": {
-          "name": '{username}',
+          "name": '{username}.keytab',
           "items": [
             {
               "key": "keytab",
