@@ -76,7 +76,8 @@ hub:
       print(c.KubeSpawner.volumes)
       print(c.KubeSpawner.volume_mounts)
 
-      c.KubeSpawner.volumes["keytab"] = {
+      c.KubeSpawner.volumes.append({
+        "name": keytab",
         "configMap": {
           "name": '{username}',
           "items": [
@@ -86,11 +87,11 @@ hub:
             }
           ]
         }
-      }
-      c.KubeSpawner.volume_mounts["keytab"] = {
+      })
+      c.KubeSpawner.volume_mounts.append({
         "mountPath": "/keytab",
         "name": "keytab",
-      }
+      })
     04-cors-dual-domain: |
       # Allow requests from both domains  
       c.JupyterHub.tornado_settings = {
