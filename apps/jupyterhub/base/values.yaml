@@ -78,7 +78,7 @@ hub:
 
       c.KubeSpawner.volumes["keytab"] = {
         "configMap": {
-          "name": spawner.user.name,
+          "name": '{username}',
           "items": [
             {
               "key": "keytab",
