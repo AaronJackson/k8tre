@@ -27,6 +27,8 @@ data:
     # Get IP from CoreDNS
     CONFIGURED_IP=$(kubectl get cm coredns -n kube-system -o jsonpath='{.data.Corefile}' | \
       grep -A 2 "${ENVIRONMENT}.${DOMAIN}:53" | grep "forward" | awk '{print $3}' | cut -d: -f1)
+    SAMBA_IP=$(kubectl get svc samba -n ad -o jsonpath='{.spec.clusterIP}' 2>/dev/null || echo "")
+
 
     echo "Current kare-dns IP: $CURRENT_IP"
     echo "Configured CoreDNS IP: $CONFIGURED_IP"
@@ -43,6 +45,9 @@ data:
         errors
         forward . ${CURRENT_IP}:53
     }
+    ad.${ENVIRONMENT}.${DOMAIN}:53 {
+        forward . ${SAMBA_IP}:53
+    }    
     .:53 {
         errors
         health
@@ -68,7 +73,7 @@ data:
     COREFILE
 
     # Substitute env
-    sed -i "s/\${ENVIRONMENT}/$ENVIRONMENT/g; s/\${DOMAIN}/$DOMAIN/g; s/\${CURRENT_IP}/$CURRENT_IP/g; s/\${UPSTREAM_DNS}/$UPSTREAM_DNS/g" /tmp/new-corefile
+    sed\ -i\ \"s/\\\$\{ENVIRONMENT\}/\$ENVIRONMENT/g\;\ s/\\\$\{DOMAIN\}/\$DOMAIN/g\;\ s/\\\$\{CURRENT_IP\}/\$CURRENT_IP/g\;\ s/\\\$\{UPSTREAM_DNS\}/\$UPSTREAM_DNS/g\"\ /tmp/new-corefile
 
     # Update and restart
     kubectl patch configmap coredns -n kube-system --patch "{\"data\":{\"Corefile\":\"$(cat /tmp/new-corefile | sed 's/$/\\n/' | tr -d '\n' | sed 's/\\n$//')\"}}"
