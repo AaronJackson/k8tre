@@ -22,13 +22,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: samba-cache-generator
+  name: samba-ccache-generator
   namespace: ad
 rules:
   - apiGroups: [""]
-    resources: ["configmap"]
-    verbs: ["create", "update", "list", "delete", "get"]
-    
+    resources: ["configmaps"]
+    verbs: ["create", "update", "list", "delete", "get", "patch"]
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -80,15 +80,15 @@ spec:
             - name: ccache
               configMap:
                 defaultMode: 0600
-                name: samba-admin
+                name: administrator.keytab
           containers:
           - name: ccache-generator
             image: docker.io/library/samba-dc:latest
             imagePullPolicy: Never
             volumeMounts:
-              - mountPath: /Administrator.ccache
+              - mountPath: /Administrator.keytab
                 name: ccache
-                subPath: Administrator.ccache
+                subPath: Administrator.keytab
             command:
             - /bin/sh
             - -c
@@ -96,7 +96,7 @@ spec:
               mkdir /samba/etc
               cat > /etc/samba/smb.conf <<CONF
               [global]
-              tls verify peer = no_check
+                  tls verify peer = no_check
               CONF
 
               cat > /etc/krb5.conf <<CONF
@@ -108,20 +108,43 @@ spec:
 
               [realms]
               AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK = {
-              default_domain = ad.stg.asjk8tre.dev.hic.dundee.ac.uk
-              kdc = dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk
+                  default_domain = ad.stg.asjk8tre.dev.hic.dundee.ac.uk
+                  kdc = dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk
               }
               CONF
 
               date
               echo "Updating Kerberos ccahe ConfigMaps"
-              kubectl -n keycloak get users
-              kubectl -n keycloak get projects
-              kubectl -n keycloak get groups
-              klist -c /Administrator.ccache
+              kinit -k -t /Administrator.keytab -c Administrator.ccache Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
 
-              exit 0
-              username=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 10)
-              samba-tool user add "$username" -d10 -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
-                    -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache --random-password
+              current=$(samba-tool user list -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
+                  -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache)
+
+              kubectl -n keycloak get users -o yaml | \
+                  yq -r '.items[].spec | (.username + "--" + .groups[])' > /tmp/usernames.txt
+
+                  while read username <&3 ; do
+                  # Skip if already exists
+                  echo "$current" | grep "^$username$" >/dev/null
+                  if [ $? -eq 1 ] ; then
+                      samba-tool user add "$username" -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
+                          -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache --random-password
+
+                      password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 32)
+                      samba-tool user setpassword "$username" --newpassword "$password" -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
+                          -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache
+
+                      # Create a keytab for this user principal. This only needs to be regenerated if the user's password changes.
+                      ktutil <<CMD
+              clear
+              addent -password -p $username@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK -k 1 -e aes256-cts-hmac-sha1-96
+              $password
+              wkt tmp.keytab
+              CMD
+
+                      kubectl -n ad create configmap "$username.keytab" --from-file tmp.keytab -o yaml --dry-run=client | kubectl apply -f -
+
+                      rm tmp.keytab
+                  fi
+              done 3< /tmp/usernames.txt
               exit 0
