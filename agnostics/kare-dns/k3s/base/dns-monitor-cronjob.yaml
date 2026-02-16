@@ -73,7 +73,7 @@ data:
     COREFILE
 
     # Substitute env
-    sed\ -i\ \"s/\\\$\{ENVIRONMENT\}/\$ENVIRONMENT/g\;\ s/\\\$\{DOMAIN\}/\$DOMAIN/g\;\ s/\\\$\{CURRENT_IP\}/\$CURRENT_IP/g\;\ s/\\\$\{UPSTREAM_DNS\}/\$UPSTREAM_DNS/g\"\ /tmp/new-corefile
+    sed -i "s/\${ENVIRONMENT}/$ENVIRONMENT/g; s/\${DOMAIN}/$DOMAIN/g; s/\${CURRENT_IP}/$CURRENT_IP/g; s/\${UPSTREAM_DNS}/$UPSTREAM_DNS/g" /tmp/new-corefile
 
     # Update and restart
     kubectl patch configmap coredns -n kube-system --patch "{\"data\":{\"Corefile\":\"$(cat /tmp/new-corefile | sed 's/$/\\n/' | tr -d '\n' | sed 's/\\n$//')\"}}"
