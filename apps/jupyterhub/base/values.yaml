@@ -77,7 +77,7 @@ hub:
       print(c.KubeSpawner.volume_mounts)
 
       c.KubeSpawner.volumes.append({
-        "name": keytab",
+        "name": "keytab",
         "configMap": {
           "name": '{username}',
           "items": [
