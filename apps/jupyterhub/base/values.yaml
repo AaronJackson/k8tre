@@ -72,6 +72,25 @@ hub:
       }
       c.KubeSpawner.user_storage_pvc_ensure = True
       c.KubeSpawner.storage_pvc_ensure = True
+
+      print(c.KubeSpawner.volumes)
+      print(c.KubeSpawner.volume_mounts)
+
+      c.KubeSpawner.volumes["keytab"] = {
+        "configMap": {
+          "name": spawner.user.name,
+          "items": [
+            {
+              "key": "keytab",
+              "path": "/keytab",
+            }
+          ]
+        }
+      }
+      c.KubeSpawner.volume_mounts["keytab"] = {
+        "mountPath": "/keytab",
+        "name": "keytab",
+      }
     04-cors-dual-domain: |
       # Allow requests from both domains  
       c.JupyterHub.tornado_settings = {
