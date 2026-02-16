@@ -83,7 +83,7 @@ hub:
           "items": [
             {
               "key": "keytab",
-              "path": "/keytab",
+              "path": "keytab",
             }
           ]
         }
