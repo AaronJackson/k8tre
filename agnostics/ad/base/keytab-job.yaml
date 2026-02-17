@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ccache-generator
+  name: keytab-generator
   namespace: ad
 automountServiceAccountToken: true
 
@@ -12,7 +12,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: samba-identity-fetcher
-  namespace: ad
+  namespace: keycloak
 rules:
   - apiGroups: ["identity.k8tre.io", "research.k8tre.io"]
     resources: ["users", "groups", "projects"]
@@ -22,7 +22,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: samba-ccache-generator
+  name: samba-keytab-generator
   namespace: ad
 rules:
   - apiGroups: [""]
@@ -31,13 +31,25 @@ rules:
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: samba-keytab-generator
+  namespace: jupyterhub
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create", "update", "list", "delete", "get", "patch"]
+
+    
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: samba-identity-fetcher
   namespace: keycloak
 subjects:
   - kind: ServiceAccount
-    name: ccache-generator
+    name: keytab-generator
     namespace: ad
 roleRef:
   kind: Role
@@ -48,11 +60,11 @@ roleRef:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: samba-ccache-generator
+  name: samba-keytab-generator
   namespace: ad
 subjects:
   - kind: ServiceAccount
-    name: ccache-generator
+    name: keytab-generator
     namespace: ad
 roleRef:
   kind: Role
@@ -60,10 +72,25 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: samba-keytab-generator
+  namespace: jupyterhub
+subjects:
+  - kind: ServiceAccount
+    name: keytab-generator
+    namespace: ad
+roleRef:
+  kind: Role
+  name: samba-keytab-generator
+  apiGroup: rbac.authorization.k8s.io
+  
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: ccache-generator
+  name: keytab-generator
   namespace: ad
 spec:
   schedule: "* * * * *"
@@ -74,7 +101,7 @@ spec:
     spec:
       template:
         spec:
-          serviceAccountName: ccache-generator
+          serviceAccountName: keytab-generator
           restartPolicy: OnFailure
           volumes:
             - name: ccache
@@ -82,7 +109,7 @@ spec:
                 defaultMode: 0600
                 name: administrator.keytab
           containers:
-          - name: ccache-generator
+          - name: keytab-generator
             image: docker.io/library/samba-dc:latest
             imagePullPolicy: Never
             volumeMounts:
@@ -114,16 +141,20 @@ spec:
               CONF
 
               date
-              echo "Updating Kerberos ccahe ConfigMaps"
+              echo "Updating Kerberos keytab ConfigMaps"
               kinit -k -t /Administrator.keytab -c Administrator.ccache Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
 
               current=$(samba-tool user list -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
                   -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache)
 
-              kubectl -n keycloak get users -o yaml | \
-                  yq -r '.items[].spec | (.username + "--" + .groups[])' > /tmp/usernames.txt
-
-                  while read username <&3 ; do
+              # CRDs for this are a bit messy.
+              # 
+              # `group.identity.k8tre.io` has two valid schemas
+              # depending on whether it's a subgroup or not. In the
+              # case of subgroup, it defines project as a list, when
+              # it should probably be limited to a single project.
+              kubectl  -n keycloak get group -o yaml | yq -r '.items[] | select(.spec.members) | .spec | (.members[] + "-" + .projects[0])' > /tmp/usernames.txt
+              while read username <&3 ; do
                   # Skip if already exists
                   echo "$current" | grep "^$username$" >/dev/null
                   if [ $? -eq 1 ] ; then
@@ -139,12 +170,12 @@ spec:
               clear
               addent -password -p $username@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK -k 1 -e aes256-cts-hmac-sha1-96
               $password
-              wkt tmp.keytab
+              wkt /keytab
               CMD
 
-                      kubectl -n ad create configmap "$username.keytab" --from-file tmp.keytab -o yaml --dry-run=client | kubectl apply -f -
+                      kubectl -n jupyterhub create configmap "$username.keytab" --from-file /keytab -o yaml --dry-run=client | kubectl apply -f -
 
-                      rm tmp.keytab
+                      rm /keytab
                   fi
               done 3< /tmp/usernames.txt
               exit 0
