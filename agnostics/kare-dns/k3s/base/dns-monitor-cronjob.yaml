@@ -29,7 +29,6 @@ data:
       grep -A 2 "${ENVIRONMENT}.${DOMAIN}:53" | grep "forward" | awk '{print $3}' | cut -d: -f1)
     SAMBA_IP=$(kubectl get svc samba -n ad -o jsonpath='{.spec.clusterIP}' 2>/dev/null || echo "")
 
-
     echo "Current kare-dns IP: $CURRENT_IP"
     echo "Configured CoreDNS IP: $CONFIGURED_IP"
 
@@ -41,13 +40,16 @@ data:
 
     echo "IP mismatch detected! Updating CoreDNS..."
     cat > /tmp/new-corefile << 'COREFILE'
+    ad.${ENVIRONMENT}.${DOMAIN}:53 {
+        forward . ${SAMBA_IP}:53
+    }
+    0.42.10.in-addr.arpa:54 {
+        forward . ${SAMBA_IP}:53
+    }
     ${ENVIRONMENT}.${DOMAIN}:53 {
         errors
         forward . ${CURRENT_IP}:53
     }
-    ad.${ENVIRONMENT}.${DOMAIN}:53 {
-        forward . ${SAMBA_IP}:53
-    }    
     .:53 {
         errors
         health
