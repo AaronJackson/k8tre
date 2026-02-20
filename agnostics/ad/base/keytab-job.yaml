@@ -39,7 +39,6 @@ rules:
   - apiGroups: [""]
     resources: ["configmaps"]
     verbs: ["create", "update", "list", "delete", "get", "patch"]
-
     
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -68,7 +67,7 @@ subjects:
     namespace: ad
 roleRef:
   kind: Role
-  name: samba-ccache-generator
+  name: samba-keytab-generator
   apiGroup: rbac.authorization.k8s.io
 
 ---
@@ -144,7 +143,9 @@ spec:
               echo "Updating Kerberos keytab ConfigMaps"
               kinit -k -t /Administrator.keytab -c Administrator.ccache Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
 
-              current=$(samba-tool user list -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
+              current_users=$(samba-tool user list -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
+                  -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache)
+              current_groups=$(samba-tool group list -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
                   -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache)
 
               # CRDs for this are a bit messy.
@@ -153,29 +154,44 @@ spec:
               # depending on whether it's a subgroup or not. In the
               # case of subgroup, it defines project as a list, when
               # it should probably be limited to a single project.
-              kubectl  -n keycloak get group -o yaml | yq -r '.items[] | select(.spec.members) | .spec | (.members[] + "-" + .projects[0])' > /tmp/usernames.txt
-              while read username <&3 ; do
-                  # Skip if already exists
-                  echo "$current" | grep "^$username$" >/dev/null
-                  if [ $? -eq 1 ] ; then
+              #
+              # We can filter out the ones we want by checking for
+              # .spec.members
+              kubectl  -n keycloak get group -o yaml | yq -r '.items[] | select(.spec.members) | .spec | (.projects[0])' | sort -u > /tmp/projects.txt
+              while read project <&3 ; do
+                  # Create a user group in AD if it doesn't exist already.
+                  (echo "$current_groups" | grep "^project-$project$" >/dev/null) || (
+                      samba-tool group add "project-$project" -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
+                          -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache
+                  )
+              done 3< /tmp/projects.txt
+              
+              kubectl  -n keycloak get group -o yaml | yq -r '.items[] | select(.spec.members) | .spec | (.members[] + "-" + .projects[0] + "\t" + .projects[0])' > /tmp/usernames.txt
+              while read username project <&3 ; do
+                  (echo "$current_users" | grep "^$username$" >/dev/null) || (
                       samba-tool user add "$username" -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
                           -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache --random-password
+
+                      samba-tool group addmembers "project-$project" "$username" -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
+                          -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache
 
                       password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 32)
                       samba-tool user setpassword "$username" --newpassword "$password" -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
                           -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache
 
                       # Create a keytab for this user principal. This only needs to be regenerated if the user's password changes.
-                      ktutil <<CMD
-              clear
-              addent -password -p $username@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK -k 1 -e aes256-cts-hmac-sha1-96
-              $password
-              wkt /keytab
-              CMD
+                      # It also needs to be moved over to an expect script cause this is a bit rubbish.
+                      (
+                      echo "clear"
+                      echo "addent -password -p $username@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK -k 1 -e aes256-cts-hmac-sha1-96"
+                      echo "$password"
+                      echo "wkt /keytab"
+                      ) | ktutil
 
                       kubectl -n jupyterhub create configmap "$username.keytab" --from-file /keytab -o yaml --dry-run=client | kubectl apply -f -
 
                       rm /keytab
-                  fi
+                  )
+                  
               done 3< /tmp/usernames.txt
               exit 0

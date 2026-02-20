@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: krb5.conf
+  namespace: jupyterhub
+data:
+  config: |
+    [libdefaults]
+    	default_realm = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK 
+    	kdc_timesync = 1
+    	ccache_type = 4
+    	forwardable = true
+    	proxiable = true
+      
+    [realms]
+    AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK = {
+    }
+    
+    [domain_realm]
+    .AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
+    .ad.stg.asjk8tre.dev.hic.dundee.ac.uk = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
+
+
+  
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: krb5.conf
+  namespace: ad
+data:
+  config: |
+    [libdefaults]
+    	default_realm = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK 
+    	kdc_timesync = 1
+    	ccache_type = 4
+    	forwardable = true
+    	proxiable = true
+      
+    [realms]
+    AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK = {
+    }
+    
+    [domain_realm]
+    .AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
+    .ad.stg.asjk8tre.dev.hic.dundee.ac.uk = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
+
+
+  
