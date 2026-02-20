@@ -40,14 +40,10 @@ data:
 
     echo "IP mismatch detected! Updating CoreDNS..."
     cat > /tmp/new-corefile << 'COREFILE'
-    ad.${ENVIRONMENT}.${DOMAIN}:53 {
-        forward . ${SAMBA_IP}:53
-    }
-    0.42.10.in-addr.arpa:54 {
-        forward . ${SAMBA_IP}:53
-    }
     ${ENVIRONMENT}.${DOMAIN}:53 {
         errors
+        forward .0.42.10.in-addr.arpa ${SAMBA_IP}:53
+        forward .ad.${ENVIRONMENT}.${DOMAIN} ${SAMBA_IP}:53        
         forward . ${CURRENT_IP}:53
     }
     .:53 {
@@ -64,7 +60,10 @@ data:
             fallthrough
         }
         prometheus :9153
+        forward .0.42.10.in-addr.arpa ${SAMBA_IP}:53
+        forward .ad.${ENVIRONMENT}.${DOMAIN} ${SAMBA_IP}:53
         forward . ${UPSTREAM_DNS}
+
         cache 30
         loop
         reload
