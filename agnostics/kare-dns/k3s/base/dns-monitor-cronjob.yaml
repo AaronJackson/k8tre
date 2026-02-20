@@ -61,8 +61,8 @@ data:
             fallthrough
         }
         prometheus :9153
-        forward .0.42.10.in-addr.arpa ${SAMBA_IP}:53
-        forward .ad.${ENVIRONMENT}.${DOMAIN} ${SAMBA_IP}:53
+        forward 0.42.10.in-addr.arpa. ${SAMBA_IP}:53
+        forward ad.${ENVIRONMENT}.${DOMAIN}. ${SAMBA_IP}:53
         forward . ${UPSTREAM_DNS}
 
         cache 30
