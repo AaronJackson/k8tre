@@ -47,6 +47,9 @@ data:
         forward ad. ${SAMBA_IP}:53                
         forward . ${CURRENT_IP}:53
     }
+    0.42.10.in-addr.arpa:53 {
+        forward . ${SAMBA_IP}:53
+    }
     .:53 {
         errors
         health
