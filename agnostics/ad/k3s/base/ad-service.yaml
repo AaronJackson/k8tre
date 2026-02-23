@@ -74,6 +74,8 @@ spec:
           env:
             - name: PARENT_ZONE
               value: "${ENVIRONMENT}.${DOMAIN}"
+            - name: INITIAL_ADMIN_PASSWORD
+              value: DONT_WORRYthisw0ntbeusedforlong
           volumeMounts:
             - name: samba-ad-data
               mountPath: /samba

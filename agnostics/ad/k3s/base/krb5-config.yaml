@@ -21,7 +21,7 @@ data:
     .AD = AD.${ENVIRONMENT}.${DOMAIN}
     AD = AD.${ENVIRONMENT}.${DOMAIN}    
 
-  
+---  
 apiVersion: v1
 kind: ConfigMap
 metadata:
