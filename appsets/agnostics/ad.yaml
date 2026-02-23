@@ -19,7 +19,6 @@ spec:
                 matchLabels:
                   environment: "{{index .path.segments 4}}"
                   vendor: "k3s"
-#                    "{{index .path.segments 2}}"
 #                matchExpressions:
 #                  - key: skip-ad
 #                    operator: NotIn
@@ -29,7 +28,7 @@ spec:
       name: "{{index .path.segments 1}}-{{.nameNormalized}}"
       annotations:
         argocd.argoproj.io/instance: "{{index .path.segments 1}}-{{index .path.segments 4}}"
-        argocd.argoproj.io/sync-wave: "-8" # Install after MetalLB, before External DNS
+        #argocd.argoproj.io/sync-wave: "-8" # Install after MetalLB, before External DNS
     spec:
       project: default
       source:
