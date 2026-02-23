@@ -18,7 +18,8 @@ spec:
               selector:
                 matchLabels:
                   environment: "{{index .path.segments 4}}"
-                  vendor: "{{index .path.segments 2}}"
+                  vendor: "k3s"
+#                    "{{index .path.segments 2}}"
 #                matchExpressions:
 #                  - key: skip-ad
 #                    operator: NotIn
