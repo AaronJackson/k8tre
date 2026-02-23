@@ -19,10 +19,10 @@ spec:
                 matchLabels:
                   environment: "{{index .path.segments 4}}"
                   vendor: "{{index .path.segments 2}}"
-                matchExpressions:
-                  - key: skip-ad
-                    operator: NotIn
-                    values: ["true"]
+#                matchExpressions:
+#                  - key: skip-ad
+#                    operator: NotIn
+#                    values: ["true"]
   template:
     metadata:
       name: "{{index .path.segments 1}}-{{.nameNormalized}}"
