@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ad-service.yaml
+- keytab-job.yaml
+- krb5-config.yaml
+- mssql-service.yaml
+
