@@ -73,9 +73,7 @@ spec:
           imagePullPolicy: Never
           env:
             - name: PARENT_ZONE
-              value: stg.asjk8tre.dev.hic.dundee.ac.uk
-            - name: INITIAL_ADMIN_PASSWORD
-              value: Password1234@@
+              value: "${ENVIRONMENT}.${DOMAIN}"
           volumeMounts:
             - name: samba-ad-data
               mountPath: /samba
@@ -100,8 +98,6 @@ spec:
             - containerPort: 464
             - containerPort: 636
               protocol: TCP
-#            - containerPort: 1024-5000
-#              protocol: udp
             - containerPort: 3268
               protocol: TCP
             - containerPort: 3269

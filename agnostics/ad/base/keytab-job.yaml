@@ -127,26 +127,26 @@ spec:
 
               cat > /etc/krb5.conf <<CONF
               [libdefaults]
-              default_realm = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
+              default_realm = AD.${ENVIRONMENT}.${DOMAIN}
               dns_lookup_realm = false
               dns_lookup_kdc = true
               rdns = false
 
               [realms]
-              AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK = {
-                  default_domain = ad.stg.asjk8tre.dev.hic.dundee.ac.uk
-                  kdc = dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk
+              AD.${ENVIRONMENT}.${DOMAIN} = {
+                  default_domain = AD.${ENVIRONMENT}.${DOMAIN}
+                  kdc = dc0.AD.${ENVIRONMENT}.${DOMAIN}
               }
               CONF
 
               date
               echo "Updating Kerberos keytab ConfigMaps"
-              kinit -k -t /Administrator.keytab -c Administrator.ccache Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
+              kinit -k -t /Administrator.keytab -c Administrator.ccache Administrator@AD.${ENVIRONMENT}.{$DOMAIN}
 
-              current_users=$(samba-tool user list -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
-                  -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache)
-              current_groups=$(samba-tool group list -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
-                  -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache)
+              current_users=$(samba-tool user list -H ldaps://dc0.ad.${ENVIRONMENT}.${DOMAIN} \
+                  -U Administrator@AD.${ENVIRONMENT}.${DOMAIN} --use-kerberos=required --use-krb5-ccache=/Administrator.ccache)
+              current_groups=$(samba-tool group list -H ldaps://dc0.${ENVIRONMENT}.${DOMAIN} \
+                  -U Administrator@AD.${ENVIRONMENT}.${DOMAIN} --use-kerberos=required --use-krb5-ccache=/Administrator.ccache)
 
               # CRDs for this are a bit messy.
               # 
@@ -161,29 +161,29 @@ spec:
               while read project <&3 ; do
                   # Create a user group in AD if it doesn't exist already.
                   (echo "$current_groups" | grep "^project-$project$" >/dev/null) || (
-                      samba-tool group add "project-$project" -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
-                          -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache
+                      samba-tool group add "project-$project" -H ldaps://dc0.ad.${ENVIRONMENT}.${DOMAIN} \
+                          -U Administrator@AD.${ENVIRONMENT}.${DOMAIN} --kerberos=required --use-krb5-ccache=/Administrator.ccache
                   )
               done 3< /tmp/projects.txt
               
               kubectl  -n keycloak get group -o yaml | yq -r '.items[] | select(.spec.members) | .spec | (.members[] + "-" + .projects[0] + "\t" + .projects[0])' > /tmp/usernames.txt
               while read username project <&3 ; do
                   (echo "$current_users" | grep "^$username$" >/dev/null) || (
-                      samba-tool user add "$username" -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
-                          -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache --random-password
+                      samba-tool user add "$username" -H ldaps://dc0.ad.${ENVIRONMENT}.${DOMAIN} \
+                          -U Administrator@AD.${ENVIRONMENT}.${DOMAIN} --use-kerberos=required --use-krb5-ccache=/Administrator.ccache --random-password
 
-                      samba-tool group addmembers "project-$project" "$username" -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
-                          -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache
+                      samba-tool group addmembers "project-$project" "$username" -H ldaps://dc0.ad.${ENVIRONMENT}.${DOMAIN} \
+                          -U Administrator@AD.${ENVIRONMENT}.${DOMAIN} --use-kerberos=required --use-krb5-ccache=/Administrator.ccache
 
                       password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 32)
-                      samba-tool user setpassword "$username" --newpassword "$password" -H ldaps://dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk \
-                          -U Administrator@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK --use-kerberos=required --use-krb5-ccache=/Administrator.ccache
+                      samba-tool user setpassword "$username" --newpassword "$password" -H ldaps://dc0.ad.${ENVIRONMENT}.${DOMAIN} \
+                          -U Administrator@AD.${ENVIRONMENT}.${DOMAIN} --use-kerberos=required --use-krb5-ccache=/Administrator.ccache
 
                       # Create a keytab for this user principal. This only needs to be regenerated if the user's password changes.
                       # It also needs to be moved over to an expect script cause this is a bit rubbish.
                       (
                       echo "clear"
-                      echo "addent -password -p $username@AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK -k 1 -e aes256-cts-hmac-sha1-96"
+                      echo "addent -password -p $username@AD.${ENVIRONMENT}.${DOMAIN} -k 1 -e aes256-cts-hmac-sha1-96"
                       echo "$password"
                       echo "wkt /keytab"
                       ) | ktutil
