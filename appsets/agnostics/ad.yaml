@@ -13,7 +13,7 @@ spec:
               repoURL: https://github.com/k8tre/k8tre.git
               revision: main
               directories:
-                - path: agnostics/ad/*/base/*
+                - path: agnostics/ad/*/envs/*
           - clusters:
               selector:
                 matchLabels:
