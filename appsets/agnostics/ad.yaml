@@ -15,10 +15,10 @@ spec:
               directories:
                 - path: agnostics/ad/*/envs/*
           - clusters:
-#              selector:
-#                matchLabels:
-#                  environment: "{{index .path.segments 4}}"
-#                  vendor: "{{index .path.segments 2}}"
+              selector:
+                matchLabels:
+                  environment: "{{index .path.segments 4}}"
+                  vendor: "{{index .path.segments 2}}"
 #                matchExpressions:
 #                  - key: skip-ad
 #                    operator: NotIn
