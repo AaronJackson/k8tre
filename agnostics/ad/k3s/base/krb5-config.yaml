@@ -6,20 +6,23 @@ metadata:
 data:
   config: |
     [libdefaults]
-    	default_realm = AD.${ENVIRONMENT}.${DOMAIN}
+    	default_realm = AD.${ENVIRONMENT^^}.${DOMAIN^^}
     	kdc_timesync = 1
     	ccache_type = 4
     	forwardable = true
     	proxiable = true
       
     [realms]
-    AD.${ENVIRONMENT}.${DOMAIN} = {
+    AD.${ENVIRONMENT^^}.${DOMAIN^^} = {
     }
     
     [domain_realm]
-    .AD.${ENVIRONMENT}.${DOMAIN} = AD.${ENVIRONMENT}.${DOMAIN}
-    .AD = AD.${ENVIRONMENT}.${DOMAIN}
-    AD = AD.${ENVIRONMENT}.${DOMAIN}    
+    .AD.${ENVIRONMENT^^}.${DOMAIN^^} = AD.${ENVIRONMENT^^}.${DOMAIN^^}
+    .ad.${ENVIRONMENT,,}.${DOMAIN,,} = AD.${ENVIRONMENT^^}.${DOMAIN^^}    
+    .AD = AD.${ENVIRONMENT^^}.${DOMAIN^^}
+    AD = AD.${ENVIRONMENT^^}.${DOMAIN^^}
+    .ad = AD.${ENVIRONMENT^^}.${DOMAIN^^}
+    .AD = AD.${ENVIRONMENT^^}.${DOMAIN^^}            
 
 ---  
 apiVersion: v1
@@ -30,18 +33,20 @@ metadata:
 data:
   config: |
     [libdefaults]
-    	default_realm = AD.${ENVIRONMENT}.${DOMAIN}
+    	default_realm = AD.${ENVIRONMENT^^}.${DOMAIN^^}
     	kdc_timesync = 1
     	ccache_type = 4
     	forwardable = true
     	proxiable = true
       
     [realms]
-    AD.${ENVIRONMENT}.${DOMAIN} = {
+    AD.${ENVIRONMENT^^}.${DOMAIN^^} = {
     }
     
     [domain_realm]
-    .AD.${ENVIRONMENT}.${DOMAIN} = AD.${ENVIRONMENT}.${DOMAIN}
-    .AD = AD.${ENVIRONMENT}.${DOMAIN}
-    AD = AD.${ENVIRONMENT}.${DOMAIN}    
-  
+    .AD.${ENVIRONMENT^^}.${DOMAIN^^} = AD.${ENVIRONMENT^^}.${DOMAIN^^}
+    .ad.${ENVIRONMENT,,}.${DOMAIN,,} = AD.${ENVIRONMENT^^}.${DOMAIN^^}    
+    .AD = AD.${ENVIRONMENT^^}.${DOMAIN^^}
+    AD = AD.${ENVIRONMENT^^}.${DOMAIN^^}
+    .ad = AD.${ENVIRONMENT^^}.${DOMAIN^^}
+    .AD = AD.${ENVIRONMENT^^}.${DOMAIN^^}            
