@@ -6,8 +6,9 @@ resources:
   - keytab-job.yaml
   - mssql-service.yaml
 
-
 configMapGenerator:
-  - name: keytab-job.sh
+  - name: keytab-job-scripts
+    namespace: ad
     files:
       - keytab-job.sh
+

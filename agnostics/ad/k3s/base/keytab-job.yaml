@@ -103,23 +103,24 @@ spec:
           serviceAccountName: keytab-generator
           restartPolicy: OnFailure
           volumes:
-            - name: ccache
+            - name: keytab
               configMap:
                 defaultMode: 0600
                 name: administrator.keytab
-            - name: keytab-job-sh
+            - name: scripts
               configMap:
                 defaultMode: 0770
-                name: keytab-job.sh
+                name: keytab-job-scripts
           containers:
           - name: keytab-generator
             image: docker.io/library/samba-dc:latest
             imagePullPolicy: Never
             volumeMounts:
               - mountPath: /Administrator.keytab
-                name: ccache
+                name: keytab
                 subPath: Administrator.keytab
               - mountPath: /keytab-job.sh
-                name: keytab-job-sh
+                name: scripts
                 subPath: keytab-job.sh
-            command: "/keytab-job.sh"
+            command:
+              - /keytab-job.sh
