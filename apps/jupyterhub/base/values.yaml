@@ -108,6 +108,7 @@ hub:
       c.KubeSpawner.volume_mounts.append({
         "mountPath": "/etc/krb5.conf",
         "name": "krb5",
+        "subPath": "config"
       })      
     04-cors-dual-domain: |
       # Allow requests from both domains  
