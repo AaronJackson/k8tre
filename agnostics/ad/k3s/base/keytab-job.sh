@@ -3,7 +3,7 @@
 KRB5CCNAME="/Administrator.ccache"
 realm="ad.${ENVIRONMENT}.${DOMAIN}"
 REALM=$(echo "${realm}" | tr '[:lower:]' '[:upper:]')
-SAMBA_OPTS=-H "ldaps://dc0.$realm" -U "Administrator@$REALM" --use-kerberos=required --use-krb5-ccache="$KRB5CCNAME"
+SAMBA_OPTS="-H \"ldaps://dc0.$realm\" -U \"Administrator@$REALM\" --use-kerberos=required --use-krb5-ccache=\"$KRB5CCNAME\""
 
 date
 echo "Updating Kerberos keytab ConfigMaps"
