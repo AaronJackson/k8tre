@@ -27,8 +27,8 @@ CMD
     kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
 	    -o yaml --dry-run=client | kubectl apply -f -
 
-    > /samba/lib/private/dns_update_cache
-    samba_dnsupdate --all-names --use-samba-tool --no-credentials
+    rm /samba/lib/private/dns_update_cache
+    samba_dnsupdate
     
     # Ensure there is a user for MSSQL and it has the correct SPNs
     (samba-tool user list | grep ^MSSQL$) || (
