@@ -15,9 +15,6 @@ fi
 (
     sleep 10
 
-    cp /samba/lib/private/krb5.conf /etc/krb5.conf
-    sed -i '/default_domain =/aadmin_server = 127.0.0.1\nkdc = 127.0.0.1' /etc/krb5.conf
-
     # Create management account credentials and put them in a configmap
     password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 10)
     samba-tool user setpassword Administrator --newpassword "$password@"
@@ -30,12 +27,11 @@ CMD
     kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
 	    -o yaml --dry-run=client | kubectl apply -f -
 
-    #kinit -k -t /Administractor.keytab -c /ccache Administrator@$REALM
-    #klist -c /ccache
+    kinit -k -t /Administractor.keytab -c /ccache "Administrator@$REALM"
     nslookup dc0.$REALM  | grep -A1 ^Name | grep Address: | awk '{ print $2 }'  | \
 	while read addr ; do
 	    # Usage: samba-tool dns delete <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SRV|TXT> <data>	    
-	    samba-tool dns delete dc0 $REALM dc0 a $addr
+	    samba-tool dns delete dc0 $REALM dc0 a $addr -U "Administrator@$REALM" --use-kerberos=required --use-krb5-ccache=/ccache
 	done
 
     samba_dnsupdate --use-samba-tool --no-credentials

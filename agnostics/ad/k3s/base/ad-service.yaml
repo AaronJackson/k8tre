@@ -70,6 +70,10 @@ spec:
           configMap:
             name: samba-init-scripts
             defaultMode: 0770
+        - name: krb5
+          configMap:
+            name: krb5.conf
+            defaultMode: 0444            
       serviceAccountName: samba
       initContainers:
         - name: samba-config
@@ -81,6 +85,9 @@ spec:
             - name: samba-init
               mountPath: /samba-init.sh
               subPath: samba-init.sh
+            - name: krb5
+              subPath: config
+              mountPath: /etc/krb5.conf              
           securityContext:
             # Unfortunately this is needed due to the way Samba manages ACLs.
             privileged: true
@@ -94,6 +101,9 @@ spec:
           volumeMounts:
             - name: samba-ad-data
               mountPath: /samba
+            - name: krb5
+              subPath: config
+              mountPath: /etc/krb5.conf              
           securityContext:
             # Unfortunately this is needed due to the way Samba manages ACLs.
             privileged: true
