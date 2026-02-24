@@ -15,41 +15,6 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: mssql-krb5.conf
-  namespace: ad
-data:
-  krb5.conf: |
-    [libdefaults]
-    default_realm = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
-    default_keytab_file = /var/opt/mssql/secrets/mssql.keytab
-    default_ccache_name = ""
-    kdc = dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk
-    kdc_timesync = 1
-    ccache_type = 4
-    forwardable = true
-    proxiable = true
-    default_tgs_enctypes = AES128-CTS-HMAC-SHA1-96 
-    default_tkt_enctypes = AES128-CTS-HMAC-SHA1-96
-    fast_fail = false
-    disable_fast = true
-    
-    [realms]
-    AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK = {
-        kdc = dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk
-        admin_server = dc0.ad.stg.asjk8tre.dev.hic.dundee.ac.uk
-        default_domain = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
-    }
-    
-    [domain_realm]
-    AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
-    AD = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK    
-    .AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
-    .ad.stg.asjk8tre.dev.hic.dundee.ac.uk = AD.STG.ASJK8TRE.DEV.HIC.DUNDEE.AC.UK
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
   name: mssql.conf
   namespace: ad
 data:
@@ -100,9 +65,9 @@ spec:
           configMap:
             name: mssql.keytab
             defaultMode: 0660
-        - name: mssql-krb5
+        - name: krb5
           configMap:
-            name: mssql-krb5.conf
+            name: krb5.conf
             defaultMode: 0444
         - name: mssql-conf
           configMap:
@@ -127,7 +92,7 @@ spec:
             - name: mssql-keytab
               subPath: mssql.keytab
               mountPath: /var/opt/mssql/secrets/mssql.keytab
-            - name: mssql-krb5
+            - name: krb5
               subPath: krb5.conf
               mountPath: /etc/krb5.conf
             - name: mssql-conf
@@ -141,8 +106,8 @@ spec:
               protocol: TCP
       dnsConfig:
         searches:
-          - ad.stg.asjk8tre.dev.hic.dundee.ac.uk
-          - stg.asjk8tre.dev.hic.dundee.ac.uk
+          - "ad.${ENVIRONMENT}.${DOMAIN}"
+          - "${ENVIRONMENT}.${DOMAIN}"
               
 ---
 apiVersion: v1
