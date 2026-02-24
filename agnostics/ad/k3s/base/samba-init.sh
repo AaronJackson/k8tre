@@ -24,6 +24,10 @@ $password@
 wkt Administrator.keytab
 CMD
 
+    KRB5CCNAME=/ccache
+    kinit -k -t /Administrator.keytab "Administrator@$REALM"
+    samba_dnsupdate --use-samba-tool
+    
     kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
 	    -o yaml --dry-run=client | kubectl apply -f -
 
