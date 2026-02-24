@@ -28,12 +28,7 @@ CMD
 	    -o yaml --dry-run=client | kubectl apply -f -
 
     kinit -k -t /Administractor.keytab -c /ccache "Administrator@$REALM"
-    nslookup dc0.$REALM  | grep -A1 ^Name | grep Address: | awk '{ print $2 }'  | \
-	while read addr ; do
-	    # Usage: samba-tool dns delete <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SRV|TXT> <data>	    
-	    samba-tool dns delete dc0 $REALM dc0 a $addr -U "Administrator@$REALM" --use-kerberos=required --use-krb5-ccache=/ccache
-	done
-
+    samba-tool dns cleanup dc0 dc0.$REALM --use-krb5-ccache=/ccache
     samba_dnsupdate --use-samba-tool --no-credentials
     
     # Ensure there is a user for MSSQL and it has the correct SPNs
