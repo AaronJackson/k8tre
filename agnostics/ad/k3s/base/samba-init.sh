@@ -33,7 +33,7 @@ CMD
     kinit -k -t /Administrator.keytab "Administrator@$REALM"
     #samba_dnsupdate --all-names --use-nsupdate --verbose
 
-    MYIP=$(ip a | grep -A1 link/ether | grep inet | awk '{ print $2 }')
+    MYIP=$(ip a | grep -A1 link/ether | grep inet | awk '{ print $2 }' | awk -F'/' '{ print $1 }')
     echo $MYIP
     nslookup dc0.$REALM 127.0.0.1 | grep -A1 Name: | grep Address | awk '{ print $2 }' | grep -v "$MYIP" | \
 	while read ip ; do
