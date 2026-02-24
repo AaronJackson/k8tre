@@ -93,7 +93,7 @@ spec:
               subPath: mssql.keytab
               mountPath: /var/opt/mssql/secrets/mssql.keytab
             - name: krb5
-              subPath: krb5.conf
+              subPath: config
               mountPath: /etc/krb5.conf
             - name: mssql-conf
               subPath: mssql.conf
