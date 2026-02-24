@@ -73,7 +73,7 @@ spec:
           imagePullPolicy: Never
           env:
             - name: PARENT_ZONE
-              value: "${ENVIRONMENT^^}.${DOMAIN^^}"
+              value: "${ENVIRONMENT}.${DOMAIN}"
             - name: INITIAL_ADMIN_PASSWORD
               value: DONT_WORRYthisw0ntbeusedforlong
           volumeMounts:
