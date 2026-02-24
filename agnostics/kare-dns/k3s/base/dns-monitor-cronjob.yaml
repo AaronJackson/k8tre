@@ -42,12 +42,12 @@ data:
     cat > /tmp/new-corefile << 'COREFILE'
     ${ENVIRONMENT}.${DOMAIN}:53 {
         errors
-        forward 0.42.10.in-addr.arpa. ${SAMBA_IP}:53
+        forward in-addr.arpa. ${SAMBA_IP}:53
         forward ad.${ENVIRONMENT}.${DOMAIN}. ${SAMBA_IP}:53
         forward ad. ${SAMBA_IP}:53                
         forward . ${CURRENT_IP}:53
     }
-    0.42.10.in-addr.arpa:53 {
+    in-addr.arpa:53 {
         forward . ${SAMBA_IP}:53
     }
     .:53 {
