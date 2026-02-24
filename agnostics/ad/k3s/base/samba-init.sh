@@ -30,7 +30,7 @@ CMD
     kinit -k -t /Administractor.keytab -c /ccache "Administrator@$REALM"
     > /samba/lib/private/dns_update_cache
     samba_dnsupdate --verbose --use-file /samba/lib/private/dns_update_cache
-    samba-tool dns cleanup dc0 dc0.$REALM --use-krb5-ccache=/ccache
+    samba-tool dns cleanup dc0.ad.svc.cluster.local dc0.$REALM --use-krb5-ccache=/ccache
     samba_dnsupdate
     
     # Ensure there is a user for MSSQL and it has the correct SPNs
