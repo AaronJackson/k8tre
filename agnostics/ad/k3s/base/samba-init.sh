@@ -27,12 +27,6 @@ CMD
     kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
 	    -o yaml --dry-run=client | kubectl apply -f -
 
-    kinit -k -t /Administractor.keytab -c /ccache "Administrator@$REALM"
-    > /samba/lib/private/dns_update_cache
-    samba_dnsupdate --verbose --use-file /samba/lib/private/dns_update_cache
-    samba-tool dns cleanup dc0.ad.svc.cluster.local dc0.$REALM --use-krb5-ccache=/ccache
-    samba_dnsupdate
-    
     # Ensure there is a user for MSSQL and it has the correct SPNs
     (samba-tool user list | grep ^MSSQL$) || (
 	samba-tool user create --random-password MSSQL
