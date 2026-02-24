@@ -84,10 +84,7 @@ spec:
               mountPath: /samba
             - name: samba-init
               mountPath: /samba-init.sh
-              subPath: samba-init.sh
-            - name: krb5
-              subPath: config
-              mountPath: /etc/krb5.conf              
+              subPath: samba-init.sh              
           securityContext:
             # Unfortunately this is needed due to the way Samba manages ACLs.
             privileged: true
