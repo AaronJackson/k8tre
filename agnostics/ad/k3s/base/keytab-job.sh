@@ -25,7 +25,7 @@ forwardable = true
 proxiable = true
   
 [realms]
-AD.${ENVIRONMENT^^}.${DOMAIN^^} = {
+$REALM = {
   kdc = DC0.$REALM
 }
 
