@@ -30,8 +30,7 @@ CMD
     kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
 	    -o yaml --dry-run=client | kubectl apply -f -
 
-
-    kinit -k -t /Administractor.keytab -c /ccache Administrator
+    kinit -k -t /Administractor.keytab -c /ccache Administrator@$REALM
     nslookup dc0.$REALM  | grep -A1 ^Name | grep Address: | awk '{ print $2 }'  | \
 	while read addr ; do
 	    # Usage: samba-tool dns delete <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SRV|TXT> <data>	    
