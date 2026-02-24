@@ -59,4 +59,6 @@ CMD
     pkill samba
 ) & 
 
-exec /usr/sbin/samba -i 
+/usr/sbin/samba -i
+
+exit 0
