@@ -32,7 +32,7 @@ CMD
     
     kinit -k -t /Administractor.keytab -c /ccache "Administrator@$REALM"
     samba-tool dns cleanup dc0 dc0.$REALM --use-krb5-ccache=/ccache
-    samba_dnsupdate --use-samba-tool --no-credentials
+    samba_dnsupdate --all-names --use-samba-tool --no-credentials
     
     # Ensure there is a user for MSSQL and it has the correct SPNs
     (samba-tool user list | grep ^MSSQL$) || (
