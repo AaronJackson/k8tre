@@ -31,7 +31,7 @@ CMD
     sed -i '/default_domain =/aadmin_server = 127.0.0.1\nkdc = 127.0.0.1' /etc/krb5.conf
     
     kinit -k -t /Administractor.keytab -c /ccache "Administrator@$REALM"
-    samba-tool dns cleanup dc0 dc0.$REALM --use-krb5-ccache=/ccache
+    samba-tool dns cleanup 127.0.0.1 dc0.$REALM --use-krb5-ccache=/ccache
     samba_dnsupdate --all-names --use-samba-tool --no-credentials
     
     # Ensure there is a user for MSSQL and it has the correct SPNs
