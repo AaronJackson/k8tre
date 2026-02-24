@@ -30,12 +30,12 @@ CMD
     kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
 	    -o yaml --dry-run=client | kubectl apply -f -
 
-    kinit -k -t /Administractor.keytab -c /ccache Administrator@$REALM
-    klist -c /ccache
+    #kinit -k -t /Administractor.keytab -c /ccache Administrator@$REALM
+    #klist -c /ccache
     nslookup dc0.$REALM  | grep -A1 ^Name | grep Address: | awk '{ print $2 }'  | \
 	while read addr ; do
 	    # Usage: samba-tool dns delete <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SRV|TXT> <data>	    
-	    samba-tool dns delete dc0 $REALM dc0 a $addr --use-krb5-ccache=/ccache
+	    samba-tool dns delete dc0 $REALM dc0 a $addr
 	done
 
     samba_dnsupdate --use-samba-tool --no-credentials
