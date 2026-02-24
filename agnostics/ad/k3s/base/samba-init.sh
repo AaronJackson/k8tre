@@ -24,11 +24,13 @@ $password@
 wkt Administrator.keytab
 CMD
 
-    cp /samba/lib/private/krb5.conf /etc/krb5.conf
-    sed -i '/default_domain =/aadmin_server = 127.0.0.1\nkdc = 127.0.0.1' /etc/krb5.conf
+    cp /samba/lib/private/krb5.conf /krb5.conf
+    sed -i '/default_domain =/aadmin_server = 127.0.0.1\nkdc = 127.0.0.1' /krb5.conf
+    sed -i '/dns_lookup_kdc/s/true/false/' /krb5.conf    
+    KRB5_CONFIG=/krb5.conf
     KRB5CCNAME=/ccache
     kinit -k -t /Administrator.keytab "Administrator@$REALM"
-    samba_dnsupdate --use-samba-tool
+    samba_dnsupdate --use-nsupdate
     
     kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
 	    -o yaml --dry-run=client | kubectl apply -f -
