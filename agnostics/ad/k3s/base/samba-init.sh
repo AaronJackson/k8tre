@@ -57,6 +57,6 @@ CMD
 	    -o yaml --dry-run=client | kubectl apply -f -
 
     pkill samba
-)
+) & 
 
 exec /usr/sbin/samba -i 
