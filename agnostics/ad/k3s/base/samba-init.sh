@@ -15,6 +15,12 @@ fi
 (
     sleep 10
 
+    nslookup dc0.$REALM  | grep -A1 ^Name | grep Address: | awk '{ print $2 }'  | \
+	while read addr ; do
+	    # Usage: samba-tool dns delete <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SRV|TXT> <data>	    
+	    samba-tool dns delete dc0 $REALM dc0 a $addr
+	done
+
     samba_dnsupdate --use-samba-tool --no-credentials
 
     cp /samba/lib/private/krb5.conf /etc/krb5.conf
