@@ -11,4 +11,7 @@ configMapGenerator:
     namespace: ad
     files:
       - keytab-job.sh
-
+  - name: samba-init-scripts
+    namespace: ad
+    files:
+      - samba-init.sh

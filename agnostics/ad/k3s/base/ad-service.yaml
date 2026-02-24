@@ -66,7 +66,32 @@ spec:
         - name: samba-ad-data
           persistentVolumeClaim:
             claimName: samba-ad-data
-      serviceAccountName: samba            
+        - name: samba-init
+          configMap:
+            name: samba-init-scripts
+            defaultMode: 0770
+      serviceAccountName: samba
+      initContainers:
+        - name: samba-config
+          image: docker.io/library/samba-dc:latest
+          imagePullPolicy: Never
+          env:
+            - name: PARENT_ZONE
+              value: "${ENVIRONMENT}.${DOMAIN}"
+            - name: INITIAL_ADMIN_PASSWORD
+              value: DONT_WORRYthisw0ntbeusedforlong
+          volumeMounts:
+            - name: samba-ad-data
+              mountPath: /samba
+            - name: samba-init
+              mountPath: /samba-init.sh
+              subPath: samba-init.sh
+          securityContext:
+            # Unfortunately this is needed due to the way Samba manages ACLs.
+            privileged: true
+            allowPrivilegeEscalation: true
+          command:
+            - "samba-init.sh"
       containers:
         - name: samba          
           image: docker.io/library/samba-dc:latest
