@@ -75,11 +75,6 @@ spec:
         - name: samba-config
           image: docker.io/library/samba-dc:latest
           imagePullPolicy: Never
-          env:
-            - name: PARENT_ZONE
-              value: "${ENVIRONMENT}.${DOMAIN}"
-            - name: INITIAL_ADMIN_PASSWORD
-              value: DONT_WORRYthisw0ntbeusedforlong
           volumeMounts:
             - name: samba-ad-data
               mountPath: /samba
@@ -91,16 +86,11 @@ spec:
             privileged: true
             allowPrivilegeEscalation: true
           command:
-            - "samba-init.sh"
+            - "/samba-init.sh"
       containers:
         - name: samba          
           image: docker.io/library/samba-dc:latest
           imagePullPolicy: Never
-          env:
-            - name: PARENT_ZONE
-              value: "${ENVIRONMENT}.${DOMAIN}"
-            - name: INITIAL_ADMIN_PASSWORD
-              value: DONT_WORRYthisw0ntbeusedforlong
           volumeMounts:
             - name: samba-ad-data
               mountPath: /samba
