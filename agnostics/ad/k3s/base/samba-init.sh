@@ -27,8 +27,8 @@ CMD
     cp /samba/lib/private/krb5.conf /krb5.conf
     sed -i '/default_domain =/aadmin_server = 127.0.0.1\nkdc = 127.0.0.1' /krb5.conf
     sed -i '/dns_lookup_kdc/s/true/false/' /krb5.conf    
-    KRB5_CONFIG=/krb5.conf
-    KRB5CCNAME=/ccache
+    export KRB5_CONFIG=/krb5.conf
+    export KRB5CCNAME=/ccache
     kinit -k -t /Administrator.keytab "Administrator@$REALM"
     samba_dnsupdate --all-names --use-nsupdate --verbose
     
