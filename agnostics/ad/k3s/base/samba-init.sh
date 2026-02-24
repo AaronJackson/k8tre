@@ -30,7 +30,7 @@ CMD
     KRB5_CONFIG=/krb5.conf
     KRB5CCNAME=/ccache
     kinit -k -t /Administrator.keytab "Administrator@$REALM"
-    samba_dnsupdate --use-nsupdate
+    samba_dnsupdate --all-names --use-nsupdate --verbose
     
     kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
 	    -o yaml --dry-run=client | kubectl apply -f -
