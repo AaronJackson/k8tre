@@ -28,7 +28,7 @@ CMD
 	    -o yaml --dry-run=client | kubectl apply -f -
 
     rm /samba/lib/private/dns_update_cache
-    samba_dnsupdate
+    samba_dnsupdate --update-cache
     
     # Ensure there is a user for MSSQL and it has the correct SPNs
     (samba-tool user list | grep ^MSSQL$) || (
