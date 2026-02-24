@@ -79,7 +79,7 @@ hub:
       c.KubeSpawner.volumes.append({
         "name": "keytab",
         "configMap": {
-          "name": '{username}.keytab',
+          "name": "{username}.keytab",
           "items": [
             {
               "key": "keytab",
@@ -92,6 +92,23 @@ hub:
         "mountPath": "/keytab",
         "name": "keytab",
       })
+      
+      c.KubeSpawner.volumes.append({
+        "name": "krb5",
+        "configMap": {
+          "name": "krb5.conf",
+          "items": [
+            {
+              "key": "config",
+              "path": "config",
+            }
+          ]
+        }
+      })
+      c.KubeSpawner.volume_mounts.append({
+        "mountPath": "/etc/krb5.conf",
+        "name": "krb5",
+      })      
     04-cors-dual-domain: |
       # Allow requests from both domains  
       c.JupyterHub.tornado_settings = {
