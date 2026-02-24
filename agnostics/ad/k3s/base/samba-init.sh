@@ -31,7 +31,14 @@ CMD
     export KRB5_CONFIG=/krb5.conf
     export KRB5CCNAME=/ccache
     kinit -k -t /Administrator.keytab "Administrator@$REALM"
-    samba_dnsupdate --all-names --use-nsupdate --verbose
+    #samba_dnsupdate --all-names --use-nsupdate --verbose
+
+    MYIP=$(ip a | grep -A1 link/ether | grep inet | awk '{ print $2 }')
+    nslookup dc0.$REALM 127.0.0.1 | grep -A1 Name: | grep Address | awk '{ print $2 }' | grep -v $MYIP | \
+	while read ip ; do
+	    # Usage: samba-tool dns update <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SOA|SRV|TXT> <olddata> <newdata>
+	    samba-tool dns update dc0 $REALM dc0 A $ip $MYIP --use-krb5-ccache=/ccache
+	done
     
     kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
 	    -o yaml --dry-run=client | kubectl apply -f -
