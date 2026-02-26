@@ -23,6 +23,8 @@ kdc_timesync = 1
 ccache_type = 4
 forwardable = true
 proxiable = true
+dns_lookup_kdc = false
+dns_lookup_realm = false
   
 [realms]
 $REALM = {
