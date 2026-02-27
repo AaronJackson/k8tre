@@ -15,6 +15,7 @@ fi
 (
     sleep 10
 
+    ######################################################################
     # Create management account credentials and put them in a configmap
     password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 10)
     samba-tool user setpassword Administrator --newpassword "$password@"
@@ -33,7 +34,9 @@ CMD
     kinit -k -t /Administrator.keytab "Administrator@$REALM"
     kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
 	    -o yaml --dry-run=client | kubectl apply -f -
-    
+
+    ######################################################################
+    # Ensure our own record is up to date
     MYIP=$(ip a | grep -A1 link/ether | grep inet | awk '{ print $2 }' | awk -F'/' '{ print $1 }')
     echo $MYIP
     nslookup dc0.$REALM 127.0.0.1 | grep -A1 Name: | grep Address | awk '{ print $2 }' | grep -v "$MYIP" | \
@@ -44,14 +47,18 @@ CMD
 	    samba-tool dns update dc0 $REALM dc0 A $ip $MYIP --use-krb5-ccache=/ccache
 	done
 
+    ######################################################################
     # Check for an rDNS zone and create it if not
     (samba-tool dns zonelist --use-krb5-ccache=/ccache | grep "in-addr\.arpa") || (
 	# Usage: samba-tool dns zonecreate <server> <zone> [options]
 	# Usage: samba-tool dns add <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SRV|TXT> <data>
 	samba-tool dns zonecreate dc0 10.in-addr.arpa --use-krb5-ccache=/ccache
+
+	# Admittedly this is a bit disgusting, but it's sufficient for kerberos
 	samba-tool dns add dc0 10.in-addr.arpa '*' PTR dc0.$REALM. --use-krb5-ccache=/ccache
     )
 
+    ######################################################################
     # Ensure there is a user for MSSQL and it has the correct SPNs
     (samba-tool user list | grep ^MSSQL$) || (
 	# Usage: samba-tool user create <username> [<password>] [options]
@@ -65,6 +72,7 @@ CMD
 
 	# This allows a CNAME from sql.ad.stg... to point to mssql.ad.svc.cluster
 	samba-tool spn add MSSQLSvc/mssql.ad.svc.cluster.local:1433 MSSQL
+	samba-tool dns add dc0 $REALM sql CNAME mssql.ad.svc.cluster.local --use-krb5-ccache=/ccache
     )
     (samba-tool computer list | grep ^SQL) || (
 	samba-tool computer create SQL$ --prepare-oldjoin
@@ -79,6 +87,8 @@ CMD
     kubectl -n ad create configmap mssql.keytab --from-file mssql.keytab \
 	    -o yaml --dry-run=client | kubectl apply -f -
 
+    ######################################################################
+    # Get rid of this init container
     pkill samba
 ) & 
 
