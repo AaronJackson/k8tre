@@ -26,14 +26,19 @@ data:
 
     # Get IP from CoreDNS
     CONFIGURED_IP=$(kubectl get cm coredns -n kube-system -o jsonpath='{.data.Corefile}' | \
-      grep -A 2 "${ENVIRONMENT}.${DOMAIN}:53" | grep "forward" | awk '{print $3}' | cut -d: -f1)
+      grep -A 5 "${ENVIRONMENT}.${DOMAIN}:53" | grep "forward \. " | awk '{print $3}' | cut -d: -f1)
+
     SAMBA_IP=$(kubectl get svc samba -n ad -o jsonpath='{.spec.clusterIP}' 2>/dev/null || echo "")
+    CONFIGURED_SAMBA_IP=$(kubectl get cm coredns -n kube-system -o jsonpath='{.data.Corefile}' | \
+      grep -A 5 "${ENVIRONMENT}.${DOMAIN}:53" | grep "forward ad.${ENVIRONMENT}\.${DOMAIN}\. " | awk '{print $3}' | cut -d: -f1)
 
     echo "Current kare-dns IP: $CURRENT_IP"
     echo "Configured CoreDNS IP: $CONFIGURED_IP"
+    echo "Current samba IP: $SAMBA_IP"
+    echo "Configured samba IP: $CONFIGURED_SAMBA_IP"
 
     # Update if there's a mismatch
-    if [ "$CURRENT_IP" = "$CONFIGURED_IP" ]; then
+    if [ "$CURRENT_IP" = "$CONFIGURED_IP" ] && [ "$SAMBA_IP" = "$CONFIGURED_SAMBA_IP" ] ; then
       echo "DNS configuration is correct, no action needed"
       exit 0
     fi
