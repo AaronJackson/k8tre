@@ -31,30 +31,40 @@ CMD
     export KRB5_CONFIG=/krb5.conf
     export KRB5CCNAME=/ccache
     kinit -k -t /Administrator.keytab "Administrator@$REALM"
-    #samba_dnsupdate --all-names --use-nsupdate --verbose
-
+    kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
+	    -o yaml --dry-run=client | kubectl apply -f -
+    
     MYIP=$(ip a | grep -A1 link/ether | grep inet | awk '{ print $2 }' | awk -F'/' '{ print $1 }')
     echo $MYIP
     nslookup dc0.$REALM 127.0.0.1 | grep -A1 Name: | grep Address | awk '{ print $2 }' | grep -v "$MYIP" | \
 	while read ip ; do
 	    echo "Replacing $ip with $MYIP"
+	    # We love unnamed arguments!
 	    # Usage: samba-tool dns update <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SOA|SRV|TXT> <olddata> <newdata>
 	    samba-tool dns update dc0 $REALM dc0 A $ip $MYIP --use-krb5-ccache=/ccache
 	done
-    
-    kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
-	    -o yaml --dry-run=client | kubectl apply -f -
+
+    # Check for an rDNS zone and create it if not
+    (samba-tool dns zonelist --use-krb5-ccache=/ccache | grep "in-addr\.arpa") || (
+	# Usage: samba-tool dns zonecreate <server> <zone> [options]
+	# Usage: samba-tool dns add <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SRV|TXT> <data>
+	samba-tool dns zonecreate dc0 10.in-addr.arpa --use-krb5-ccache=/ccache
+	samba-tool dns add dc0 10.in-addr.arpa '*' PTR dc0.$REALM. --use-krb5-ccache=/ccache
+    )
 
     # Ensure there is a user for MSSQL and it has the correct SPNs
     (samba-tool user list | grep ^MSSQL$) || (
+	# Usage: samba-tool user create <username> [<password>] [options]
 	samba-tool user create --random-password MSSQL
+
+	# Usage: samba-tool spn add <name> <user> [options]
 	samba-tool spn add MSSQLSvc/SQL:1433 MSSQL
 	samba-tool spn add MSSQLSvc/SQL.$REALM:1433 MSSQL
 	samba-tool spn add MSSQLSvc/SQL MSSQL
 	samba-tool spn add MSSQLSvc/SQL.$REALM MSSQL
 
-	# This allows a CNAME from sql.ad.stg... to point to sql.ad.svc.cluster
-	samba-tool spn add MSSQLSvc/sql.ad.svc.cluster.local:1433 MSSQL
+	# This allows a CNAME from sql.ad.stg... to point to mssql.ad.svc.cluster
+	samba-tool spn add MSSQLSvc/mssql.ad.svc.cluster.local:1433 MSSQL
     )
     (samba-tool computer list | grep ^SQL) || (
 	samba-tool computer create SQL$ --prepare-oldjoin
