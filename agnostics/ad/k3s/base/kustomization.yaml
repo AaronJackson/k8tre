@@ -16,3 +16,4 @@ configMapGenerator:
     files:
       - samba-init.sh
       - samba-start.sh
+      - samba-stop.sh

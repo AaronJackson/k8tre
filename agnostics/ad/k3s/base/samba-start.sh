@@ -27,6 +27,16 @@ kinit -k -t /Administrator.keytab "Administrator@$REALM"
 kubectl -n ad create configmap administrator.keytab --from-file Administrator.keytab \
 	-o yaml --dry-run=client | kubectl apply -f -
 
+
+######################################################################
+# Check for an rDNS zone and create it if not
+echo "Ensuring we have an rDNS zone"
+(samba-tool dns zonelist dc0 --use-krb5-ccache=/ccache | grep "in-addr\.arpa") || (
+    # Usage: samba-tool dns zonecreate <server> <zone> [options]
+    # Usage: samba-tool dns add <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SRV|TXT> <data>
+    samba-tool dns zonecreate dc0 10.in-addr.arpa --use-krb5-ccache=/ccache
+)
+
 ######################################################################
 # Ensure our own record is up to date
 echo "Checking dc0 DNS"
@@ -37,19 +47,14 @@ nslookup dc0.$REALM 127.0.0.1 | grep -A1 Name: | grep Address | awk '{ print $2 
 	# We love unnamed arguments!
 	# Usage: samba-tool dns update <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SOA|SRV|TXT> <olddata> <newdata>
 	samba-tool dns update dc0 $REALM dc0 A $ip $MYIP --use-krb5-ccache=/ccache
+
+	# Remove old rDNS records
+	rip=$(echo "$ip" | awk -F. '{ print $4"."$3"."$2 }')
+	samba-tool dns delete dc0 10.in-addr.arpa $rip PTR dc0.$REALM. --use-krb5-ccache=/ccache || true
     done
 
-######################################################################
-# Check for an rDNS zone and create it if not
-echo "Ensuring we have an rDNS zone"
-(samba-tool dns zonelist dc0 --use-krb5-ccache=/ccache | grep "in-addr\.arpa") || (
-    # Usage: samba-tool dns zonecreate <server> <zone> [options]
-    # Usage: samba-tool dns add <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SRV|TXT> <data>
-    samba-tool dns zonecreate dc0 10.in-addr.arpa --use-krb5-ccache=/ccache
-
-    # Admittedly this is a bit disgusting, but it's sufficient for kerberos
-    samba-tool dns add dc0 10.in-addr.arpa '*' PTR dc0.$REALM. --use-krb5-ccache=/ccache
-)
+MYRIP=$(echo $MYIP | awk -F. '{ print $4"."$3"."$2 }')
+samba-tool dns add dc0 10.in-addr.arpa $MYRIP PTR dc0.$REALM. --use-krb5-ccache=/ccache
 
 ######################################################################
 # Ensure there is a user for MSSQL and it has the correct SPNs

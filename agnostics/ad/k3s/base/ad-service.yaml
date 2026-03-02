@@ -96,7 +96,10 @@ spec:
               mountPath: /samba
             - name: samba-init
               mountPath: /samba-start.sh
-              subPath: samba-start.sh              
+              subPath: samba-start.sh
+            - name: samba-init
+              mountPath: /samba-sh.sh
+              subPath: samba-stop.sh              
           securityContext:
             # Unfortunately this is needed due to the way Samba manages ACLs.
             privileged: true
@@ -106,6 +109,10 @@ spec:
               exec:
                 command:
                   - "/samba-start.sh"
+            preStop:
+              exec:
+                command:
+                  - "/samba-stop.sh"                  
           ports:
             - { name: "dns-udp"    , containerPort: 53  , protocol: "UDP" }
             - { name: "dns-tcp"    , containerPort: 53  , protocol: "TCP" }
