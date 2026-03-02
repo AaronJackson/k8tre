@@ -4,6 +4,7 @@ KRB5CCNAME="/Administrator.ccache"
 realm="ad.${ENVIRONMENT}.${DOMAIN}"
 REALM=$(echo "${realm}" | tr '[:lower:]' '[:upper:]')
 SAMBA_OPTS="-H ldaps://dc0.$realm -U Administrator@$REALM --use-kerberos=required --use-krb5-ccache=$KRB5CCNAME"
+LDB_OPTS="-H ldap://dc0.$realm --use-kerberos=required --use-krb5-ccache=$KRB5CCNAME"
 
 date
 echo "Updating Kerberos keytab ConfigMaps"
@@ -46,7 +47,7 @@ cp /config /etc/krb5.conf
 
 kinit -k -t /Administrator.keytab -c Administrator.ccache "Administrator@$REALM"
 
-current_users=$(samba-tool user list $SAMBA_OPTS) 
+current_users=$(samba-tool user list $SAMBA_OPTS)
 current_groups=$(samba-tool group list $SAMBA_OPTS)
 
 # CRDs for this are a bit messy.
@@ -67,29 +68,47 @@ while read project <&3 ; do
 done 3< /tmp/projects.txt
 rm /tmp/projects.txt
 
+
+function gen_user_keytab() {
+    username="$1"
+    password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 32)
+    samba-tool user setpassword "$username" --newpassword "$password" $SAMBA_OPTS
+    
+    # Create a keytab for this user principal. This only needs to be regenerated if the user's password changes.
+    # It also needs to be moved over to an expect script cause this is a bit rubbish.
+    (
+        echo "clear"
+        echo "addent -password -p $username@$REALM -k 1 -e aes256-cts-hmac-sha1-96"
+        echo "$password"
+        echo "wkt /keytab"
+    ) | ktutil
+
+    current_kvno=$(ldbsearch $LDB_OPTS "samAccountName=$username" msDS-KeyVersionNumber | grep ^msDS-KeyVersionNumber | awk '{ print $2 }')    
+    kubectl -n jupyterhub create configmap "$username.keytab" --from-file /keytab --from-literal "kvno=$current_kvno" -o yaml --dry-run=client | kubectl apply -f -
+    
+    rm /keytab
+}
+
+# Handle the creation of new users
 kubectl  -n keycloak get group -o yaml | yq -r '.items[] | select(.spec.members) | .spec | (.members[] + "-" + .projects[0] + "\t" + .projects[0])' > /tmp/usernames.txt
 while read username project <&3 ; do
+    # Create user if they don't exist
     (echo "$current_users" | grep "^$username$" >/dev/null) || (
         samba-tool user add "$username" --random-password $SAMBA_OPTS
-
         samba-tool group addmembers "project-$project" "$username" $SAMBA_OPTS
-
-        password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 32)
-        samba-tool user setpassword "$username" --newpassword "$password" $SAMBA_OPTS
-
-        # Create a keytab for this user principal. This only needs to be regenerated if the user's password changes.
-        # It also needs to be moved over to an expect script cause this is a bit rubbish.
-        (
-            echo "clear"
-            echo "addent -password -p $username@$REALM -k 1 -e aes256-cts-hmac-sha1-96"
-            echo "$password"
-            echo "wkt /keytab"
-        ) | ktutil
-
-        kubectl -n jupyterhub create configmap "$username.keytab" --from-file /keytab -o yaml --dry-run=client | kubectl apply -f -
-
-        rm /keytab
+	gen_user_keytab "$username"
+	continue
     )
+
+    # Verify kvno
+    current_kvno=$(ldbsearch $LDB_OPTS "samAccountName=$username" msDS-KeyVersionNumber | grep ^msDS-KeyVersionNumber | awk '{ print $2 }')
+    exported_kvno=$(kubectl -n jupyterhub get configmap "$username.keytab" -o yaml -o=jsonpath='{.data.kvno}' || echo 0)
+    echo "Current KVNO: $current_kvno, Exported KVNO: $exported_kvno"
+    if [ "$current_kvno" != "$exported_kvno" ] ; then
+	echo "Updating $username.keytab"
+	gen_user_keytab "$username"
+    fi
     
 done 3< /tmp/usernames.txt
+
 exit 0
