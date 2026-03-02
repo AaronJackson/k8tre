@@ -98,11 +98,8 @@ spec:
               mountPath: /samba-start.sh
               subPath: samba-start.sh
             - name: samba-init
-              mountPath: /samba-stop.sh
-              subPath: samba-stop.sh
-            - name: samba-init
               mountPath: /samba-health.sh
-              subPath: samba-stop.sh
+              subPath: samba-health.sh
           securityContext:
             # Unfortunately this is needed due to the way Samba manages ACLs.
             privileged: true
@@ -112,15 +109,12 @@ spec:
               exec:
                 command:
                   - "/samba-start.sh"
-            preStop:
-              exec:
-                command:
-                  - "/samba-stop.sh"
           livenessProbe:
             exec:
               command:
                 - "/samba-health.sh"
             periodSeconds: 10
+            initialDelaySeconds: 30
           ports:
             - { name: "dns-udp"    , containerPort: 53  , protocol: "UDP" }
             - { name: "dns-tcp"    , containerPort: 53  , protocol: "TCP" }

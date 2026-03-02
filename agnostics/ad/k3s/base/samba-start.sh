@@ -5,7 +5,7 @@ set -e
 realm="ad.${ENVIRONMENT}.${DOMAIN}"
 REALM=$(echo "$realm" | tr '[:lower:]' '[:upper:]')
 
-sleep 3
+sleep 30
 
 ######################################################################
 # Create management account credentials and put them in a configmap
@@ -53,8 +53,16 @@ nslookup dc0.$REALM 127.0.0.1 | grep -A1 Name: | grep Address | awk '{ print $2 
 	samba-tool dns delete dc0 10.in-addr.arpa $rip PTR dc0.$REALM. --use-krb5-ccache=/ccache || true
     done
 
+nslookup $REALM 127.0.0.1 | grep -A1 Name: | grep Address | awk '{ print $2 }' | grep -v "$MYIP" | \
+    while read ip ; do
+	samba-tool dns delete dc0 $REALM '.' a $ip --use-krb5-ccache=/ccache || true
+    done
+
+samba-tool dns add dc0 $REALM '.' a $MYIP --use-krb5-ccache=/ccache || true
+
 MYRIP=$(echo $MYIP | awk -F. '{ print $4"."$3"."$2 }')
-samba-tool dns add dc0 10.in-addr.arpa $MYRIP PTR dc0.$REALM. --use-krb5-ccache=/ccache
+samba-tool dns add dc0 10.in-addr.arpa $MYRIP PTR dc0.$REALM --use-krb5-ccache=/ccache
+
 
 ######################################################################
 # Ensure there is a user for MSSQL and it has the correct SPNs
