@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 realm="ad.${ENVIRONMENT}.${DOMAIN}"
 REALM=$(echo "$realm" | tr '[:lower:]' '[:upper:]')
 

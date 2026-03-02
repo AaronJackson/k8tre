@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 KRB5CCNAME="/Administrator.ccache"
 realm="ad.${ENVIRONMENT}.${DOMAIN}"
 REALM=$(echo "${realm}" | tr '[:lower:]' '[:upper:]')
@@ -74,8 +76,7 @@ function gen_user_keytab() {
     password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 32)
     samba-tool user setpassword "$username" --newpassword "$password" $SAMBA_OPTS
     
-    # Create a keytab for this user principal. This only needs to be regenerated if the user's password changes.
-    # It also needs to be moved over to an expect script cause this is a bit rubbish.
+    # Create a keytab for this user principal.
     (
         echo "clear"
         echo "addent -password -p $username@$REALM -k 1 -e aes256-cts-hmac-sha1-96"
@@ -103,12 +104,11 @@ while read username project <&3 ; do
     # Verify kvno
     current_kvno=$(ldbsearch $LDB_OPTS "samAccountName=$username" msDS-KeyVersionNumber | grep ^msDS-KeyVersionNumber | awk '{ print $2 }')
     exported_kvno=$(kubectl -n jupyterhub get configmap "$username.keytab" -o yaml -o=jsonpath='{.data.kvno}' || echo 0)
-    echo "Current KVNO: $current_kvno, Exported KVNO: $exported_kvno"
+    echo "$username - Current KVNO: $current_kvno, Exported KVNO: $exported_kvno"
     if [ "$current_kvno" != "$exported_kvno" ] ; then
 	echo "Updating $username.keytab"
 	gen_user_keytab "$username"
-    fi
-    
+    fi    
 done 3< /tmp/usernames.txt
 
 exit 0
