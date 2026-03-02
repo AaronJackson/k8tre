@@ -39,8 +39,8 @@ CMD
 
     ######################################################################
     # Ensure our own record is up to date
+    echo "Checking dc0 DNS"
     MYIP=$(ip a | grep -A1 link/ether | grep inet | awk '{ print $2 }' | awk -F'/' '{ print $1 }')
-    echo $MYIP
     nslookup dc0.$REALM 127.0.0.1 | grep -A1 Name: | grep Address | awk '{ print $2 }' | grep -v "$MYIP" | \
 	while read ip ; do
 	    echo "Replacing $ip with $MYIP"
@@ -51,7 +51,8 @@ CMD
 
     ######################################################################
     # Check for an rDNS zone and create it if not
-    (samba-tool dns zonelist --use-krb5-ccache=/ccache | grep "in-addr\.arpa") || (
+    echo "Ensuring we have an rDNS zone"
+    (samba-tool dns zonelist dc0 --use-krb5-ccache=/ccache | grep "in-addr\.arpa") || (
 	# Usage: samba-tool dns zonecreate <server> <zone> [options]
 	# Usage: samba-tool dns add <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SRV|TXT> <data>
 	samba-tool dns zonecreate dc0 10.in-addr.arpa --use-krb5-ccache=/ccache
@@ -62,6 +63,7 @@ CMD
 
     ######################################################################
     # Ensure there is a user for MSSQL and it has the correct SPNs
+    echo "Check SQL Server SPNs"
     (samba-tool user list | grep ^MSSQL$) || (
 	# Usage: samba-tool user create <username> [<password>] [options]
 	samba-tool user create --random-password MSSQL
@@ -94,6 +96,6 @@ CMD
     pkill samba
 ) & 
 
-/usr/sbin/samba -i
+/usr/sbin/samba -i || exit 0
 
 exit 0
