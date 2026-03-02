@@ -78,8 +78,7 @@ spec:
         fsGroup: 10001            
       containers:
         - name: mssql
-          image: docker.io/library/mssql-k8tre:latest
-          imagePullPolicy: Never
+          image: mcr.microsoft.com/mssql/server:2025-latest
           env:
             - name: "ACCEPT_EULA"
               value: "Y"
