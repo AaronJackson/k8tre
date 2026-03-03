@@ -1,3 +1,24 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: mssql-secrets
+  namespace: ad
+spec:
+  refreshInterval: 15s
+  secretStoreRef:
+    name: secret-store
+    kind: ClusterSecretStore
+  target:
+    name: mssql-secrets
+    template:
+      type: Opaque
+  data:
+    - secretKey: sa_password
+      remoteRef:
+        key: mssql-secrets
+        property: sa_password
+
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -83,7 +104,10 @@ spec:
             - name: "ACCEPT_EULA"
               value: "Y"
             - name: "MSSQL_SA_PASSWORD"
-              value: "X2T%Tp5b89V%WzXD!tq"
+              valueFrom:
+                secretKeyRef:
+                   name: mssql-secrets
+                   key: sa_password
             - name: "KRB5_TRACE"
               value: "/dev/stdout"
           volumeMounts:
