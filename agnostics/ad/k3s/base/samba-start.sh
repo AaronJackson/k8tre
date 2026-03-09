@@ -5,9 +5,7 @@ set -e
 realm="ad.${DOMAIN}"
 REALM=$(echo "$realm" | tr '[:lower:]' '[:upper:]')
 
-exit 0
-
-sleep 30
+sleep 5
 
 ######################################################################
 # Create management account credentials and put them in a configmap
@@ -48,7 +46,7 @@ nslookup dc0.$REALM 127.0.0.1 | grep -A1 Name: | grep Address | awk '{ print $2 
 	echo "Replacing $ip with $MYIP"
 	# We love unnamed arguments!
 	# Usage: samba-tool dns update <server> <zone> <name> <A|AAAA|PTR|CNAME|NS|MX|SOA|SRV|TXT> <olddata> <newdata>
-	samba-tool dns update dc0 $REALM dc0 A $ip $MYIP --use-krb5-ccache=/ccache
+	samba-tool dns update dc0 $REALM dc0 A $ip $MYIP --use-krb5-ccache=/ccache || true
 
 	# Remove old rDNS records
 	rip=$(echo "$ip" | awk -F. '{ print $4"."$3"."$2 }')
