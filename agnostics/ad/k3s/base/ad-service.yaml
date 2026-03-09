@@ -82,9 +82,10 @@ spec:
               mountPath: /samba-init.sh
               subPath: samba-init.sh
           securityContext:
-            # Unfortunately this is needed due to the way Samba manages ACLs.
-            privileged: true
-            allowPrivilegeEscalation: true
+            capabilities:
+              add:
+                - SYS_ADMIN
+                - NET_BIND_SERVICE
           command:
             - "/samba-init.sh"
       containers:
