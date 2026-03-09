@@ -2,7 +2,7 @@
 
 set -e
 
-realm="ad.${ENVIRONMENT}.${DOMAIN}"
+realm="ad.${DOMAIN}"
 REALM=$(echo "$realm" | tr '[:lower:]' '[:upper:]')
 
 sleep 30

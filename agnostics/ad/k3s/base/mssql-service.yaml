@@ -130,8 +130,8 @@ spec:
               protocol: TCP
       dnsConfig:
         searches:
-          - "ad.${ENVIRONMENT}.${DOMAIN}"
-          - "${ENVIRONMENT}.${DOMAIN}"
+          - "ad.${DOMAIN}"
+          - "${DOMAIN}"
               
 ---
 apiVersion: v1

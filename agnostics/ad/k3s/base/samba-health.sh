@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-realm="ad.${ENVIRONMENT}.${DOMAIN}"
+realm="ad.${DOMAIN}"
 REALM=$(echo "$realm" | tr '[:lower:]' '[:upper:]')
 
 kdestroy -c /tmp/ccache

@@ -30,7 +30,7 @@ data:
 
     SAMBA_IP=$(kubectl get svc samba -n ad -o jsonpath='{.spec.clusterIP}' 2>/dev/null || echo "")
     CONFIGURED_SAMBA_IP=$(kubectl get cm coredns -n kube-system -o jsonpath='{.data.Corefile}' | \
-      grep -A 5 "${ENVIRONMENT}.${DOMAIN}:53" | grep "forward ad.${ENVIRONMENT}\.${DOMAIN}\. " | awk '{print $3}' | cut -d: -f1)
+      grep -A 5 "${DOMAIN}:53" | grep "forward ad\.${DOMAIN}\. " | awk '{print $3}' | cut -d: -f1)
 
     echo "Current kare-dns IP: $CURRENT_IP"
     echo "Configured CoreDNS IP: $CONFIGURED_IP"
@@ -48,7 +48,7 @@ data:
     ${DOMAIN}:53 {
         errors
         forward in-addr.arpa. ${SAMBA_IP}:53
-        forward ad.${ENVIRONMENT}.${DOMAIN}. ${SAMBA_IP}:53
+        forward ad.${DOMAIN}. ${SAMBA_IP}:53
         forward ad. ${SAMBA_IP}:53                
         forward . ${CURRENT_IP}:53
     }
@@ -70,7 +70,7 @@ data:
         }
         prometheus :9153
         forward in-addr.arpa. ${SAMBA_IP}:53
-        forward ad.${ENVIRONMENT}.${DOMAIN}. ${SAMBA_IP}:53
+        forward ad.${DOMAIN}. ${SAMBA_IP}:53
         forward . ${UPSTREAM_DNS}
 
         cache 30

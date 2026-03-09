@@ -3,7 +3,7 @@
 set -e
 
 KRB5CCNAME="/Administrator.ccache"
-realm="ad.${ENVIRONMENT}.${DOMAIN}"
+realm="ad.${DOMAIN}"
 REALM=$(echo "${realm}" | tr '[:lower:]' '[:upper:]')
 SAMBA_OPTS="-H ldaps://dc0.$realm -U Administrator@$REALM --use-kerberos=required --use-krb5-ccache=$KRB5CCNAME"
 LDB_OPTS="-H ldap://dc0.$realm --use-kerberos=required --use-krb5-ccache=$KRB5CCNAME"
