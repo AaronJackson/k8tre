@@ -5,6 +5,8 @@ set -e
 realm="ad.${DOMAIN}"
 REALM=$(echo "$realm" | tr '[:lower:]' '[:upper:]')
 
+exit 0
+
 sleep 30
 
 ######################################################################
