@@ -11,5 +11,6 @@ if [ ! -f /samba/etc/smb.conf ] ; then
 	       --domain=AD \
 	       --realm="$REALM" \
 	       --server-role=dc \
-	       --dns-backend=SAMBA_INTERNAL
+	       --dns-backend=SAMBA_INTERNAL || \
+	rm -rf /samba/*
 fi
