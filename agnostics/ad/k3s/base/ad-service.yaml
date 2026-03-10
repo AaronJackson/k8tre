@@ -105,15 +105,15 @@ spec:
             # Unfortunately this is needed due to the way Samba manages ACLs.
             privileged: true
             allowPrivilegeEscalation: true
-#          lifecycle:
-#            postStart:
-#              exec:
-#                command:
-#                  - "/samba-start.sh"
-#          livenessProbe:
-#            exec:
-#              command:
-#                - "/samba-health.sh"
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - "/samba-start.sh 2>&1 > /startup.log"
+          livenessProbe:
+            exec:
+              command:
+                - "/samba-health.sh"
             periodSeconds: 10
             initialDelaySeconds: 30
           ports:
