@@ -60,6 +60,12 @@ spec:
     - toEndpoints:
       - matchLabels:
           k8s:io.kubernetes.pod.namespace: ad
+      toPorts:
+        - ports:
+            - port: "88"
+              protocol: "TCP"
+            - port: "88"
+              protocol: "UDP"
           
     # Allow external access to domains
     - toFQDNs:
