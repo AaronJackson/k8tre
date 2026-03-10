@@ -56,6 +56,11 @@ spec:
       - matchLabels:
           k8s:io.kubernetes.pod.namespace: cr8tor
 
+    # Allow kerberos access
+    - toEndpoints:
+      - matchLabels:
+          k8s:io.kubernetes.pod.namespace: ad
+          
     # Allow external access to domains
     - toFQDNs:
       - matchPattern: "*.${DOMAIN}"
