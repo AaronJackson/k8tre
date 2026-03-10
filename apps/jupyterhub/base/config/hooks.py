@@ -133,7 +133,6 @@ c.KubeSpawner.volumes.append({
   "name": "keytab",
   "configMap": {
     "name": "{username}.keytab",
-    "optional": "true",
     "items": [
       {
         "key": "keytab",
@@ -150,7 +149,6 @@ c.KubeSpawner.volumes.append({
   "name": "krb5",
   "configMap": {
     "name": "krb5.conf",
-    "optional": "true",
     "items": [
       {
         "key": "config",
