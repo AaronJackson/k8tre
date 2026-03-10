@@ -109,6 +109,8 @@ spec:
             postStart:
               exec:
                 command:
+                  - "sh"
+                  - "-c"
                   - "/samba-start.sh 2>&1 > /startup.log"
           livenessProbe:
             exec:
