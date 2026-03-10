@@ -84,7 +84,10 @@ spec:
             - port: "53"
               protocol: TCP
     # Kerberos / Active Directory
-    - toPorts:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: ad
+      toPorts:
         - port: "88"
           protocol: "TCP"
         - port: "88"
