@@ -86,7 +86,7 @@ spec:
     # Kerberos / Active Directory
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: ad
+            app: samba
       toPorts:
         - port: "88"
           protocol: "TCP"
