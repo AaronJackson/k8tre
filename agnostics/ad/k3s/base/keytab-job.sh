@@ -43,7 +43,6 @@
     .AD = $REALM
 CONF
 
-    kubectl -n jupyterhub create configmap "krb5.conf" --from-file /config -o yaml --dry-run=client | kubectl apply -f -
     kubectl -n ad create configmap "krb5.conf" --from-file /config -o yaml --dry-run=client | kubectl apply -f -
     cp /config /etc/krb5.conf
 
@@ -67,6 +66,7 @@ CONF
         (echo "$current_groups" | grep "^project-$project$" >/dev/null) || (
             samba-tool group add "project-$project" $SAMBA_OPTS
         )
+	kubectl -n "project-$project" create configmap "krb5.conf" --from-file /config -o yaml --dry-run=client | kubectl apply -f -
     done 3< /tmp/projects.txt
     rm /tmp/projects.txt
 
@@ -85,7 +85,7 @@ CONF
         ) | ktutil
 
         current_kvno=$(ldbsearch $LDB_OPTS "samAccountName=$username" msDS-KeyVersionNumber | grep ^msDS-KeyVersionNumber | awk '{ print $2 }')    
-        kubectl -n jupyterhub create configmap "$username.keytab" --from-file /keytab --from-literal "kvno=$current_kvno" -o yaml --dry-run=client | kubectl apply -f -
+        kubectl -n "project-$project" create configmap "$username.keytab" --from-file /keytab --from-literal "kvno=$current_kvno" -o yaml --dry-run=client | kubectl apply -f -
 
         rm /keytab
     }
@@ -103,7 +103,7 @@ CONF
 
         # Verify kvno
         current_kvno=$(ldbsearch $LDB_OPTS "samAccountName=$username" msDS-KeyVersionNumber | grep ^msDS-KeyVersionNumber | awk '{ print $2 }')
-        exported_kvno=$(kubectl -n jupyterhub get configmap "$username.keytab" -o yaml -o=jsonpath='{.data.kvno}' || echo 0)
+        exported_kvno=$(kubectl -n "project-$project" get configmap "$username.keytab" -o yaml -o=jsonpath='{.data.kvno}' || echo 0)
         echo "$username - Current KVNO: $current_kvno, Exported KVNO: $exported_kvno"
 
         if [ "$current_kvno" != "$exported_kvno" ] ; then
