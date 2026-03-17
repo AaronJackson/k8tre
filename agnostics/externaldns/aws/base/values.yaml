@@ -9,6 +9,10 @@ serviceAccount:
   create: true
   name: externaldns-sa
 
+sources:
+  - gateway-httproute
+  - gateway-tlsroute
+
 policy: sync
 txtOwnerId: externaldns
 
