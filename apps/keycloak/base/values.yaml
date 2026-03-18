@@ -30,6 +30,8 @@ extraEnv: |
     value: xforwarded
   - name: KC_HOSTNAME
     value: https://keycloak.${DOMAIN}
+  - name: KC_LOG_LEVEL
+    value: DEBUG
 
 database:
   vendor: postgres
