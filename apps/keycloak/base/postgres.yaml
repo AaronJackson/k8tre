@@ -9,6 +9,7 @@ spec:
   instances: 1
   storage:
     size: 512Mi # Reduced from 1Gi to use less storage
+    storageClass: rwo-default
   imagePullPolicy: Always
   resources:
     requests:
