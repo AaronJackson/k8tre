@@ -17,7 +17,7 @@ serviceAccount:
 
 sources:
   - gateway-httproute
-  - gateway-tlsroute
+  # - gateway-tlsroute
 
 policy: sync
 txtOwnerId: externaldns
