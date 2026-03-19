@@ -25,16 +25,22 @@ metadata:
   name: allow-host-all
 spec:
   # This is in addition to CiliumClusterwideNetworkPolicy/allow-pod-to-pod-via-gateway
-  description: Allows all Host/Node to Pod traffic. No Pod-to-Pod traffic allowed.
+  description: >-
+    Allows all Host/Node to Pod traffic. No Pod-to-Pod traffic allowed.
+    Explicitly allow Host Identity 1 to reach all pods.
   endpointSelector: {}
   egress:
     - toEntities:
         - host
         - remote-node
+        - health
+        - unmanaged
   ingress:
     - fromEntities:
         - host
         - remote-node
+        - health
+        - unmanaged
 
 ---
 apiVersion: cilium.io/v2
