@@ -1,8 +1,36 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-all-selected-namespaces
+spec:
+  # Selects all pods in this namespace
+  endpointSelector:
+    matchExpressions:
+      - key: "k8s:io.kubernetes.pod.namespace"
+        operator: In
+        values:
+          - kube-system
+  ingress:
+    - fromEntities:
+        - all
+  egress:
+    - toEntities:
+        - all
+
+---
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
   name: k8tre-default-network-policy
 spec:
+  # Every pod except those in kube-system
+  endpointSelector:
+    matchExpressions:
+      - key: "k8s:io.kubernetes.pod.namespace"
+        operator: NotIn
+        values:
+          - kube-system
   egress:
     - toEntities:
         - cluster
@@ -27,7 +55,6 @@ spec:
             dns:
               # TODO: narrow this down
               - matchPattern: "*"
-  endpointSelector: {}
   # ingress:
   #   - fromEntities:
   #       - cluster
