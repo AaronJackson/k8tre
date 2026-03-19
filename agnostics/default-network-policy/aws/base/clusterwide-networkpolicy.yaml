@@ -22,16 +22,31 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
+  name: allow-host-all
+spec:
+  # This is in addition to CiliumClusterwideNetworkPolicy/allow-pod-to-pod-via-gateway
+  description: Allows all Host/Node to Pod traffic. No Pod-to-Pod traffic allowed.
+  endpointSelector: {}
+  egress:
+    - toEntities:
+        - host
+        - remote-node
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
   name: k8tre-default-network-policy
 spec:
-  # Every pod except those in kube-system and project-namespaces
+  # Every pod except project-namespaces
   # This is in addition to CiliumClusterwideNetworkPolicy/allow-pod-to-pod-via-gateway
+  description: Allow access to VPC and local domains
   endpointSelector:
     matchExpressions:
-      - key: "k8s:io.kubernetes.pod.namespace"
-        operator: NotIn
-        values:
-          - kube-system
       - key: io.cilium.k8s.namespace.labels.k8tre.io/resource-type
         operator: NotIn
         values:
