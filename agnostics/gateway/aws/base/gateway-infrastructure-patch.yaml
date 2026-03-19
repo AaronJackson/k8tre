@@ -1,3 +1,12 @@
+# NOTE: Can't preserve client IP
+# https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-troubleshooting.html#loopback-timeout
+#
+# - The backend pod initiated an outbound request to the cluster's internal API / Keycloak through the external AWS NLB.
+# - The AWS NLB forwards traffic to the node's NodePort. Because the NLB was configured for instance targets, it preserved the origin pod's IP address by default.
+# - The Envoy Gateway proxies are deployed natively on the Host Network (hostNetwork: true). This bypassed standard Kubernetes SNAT rules.
+# - When Envoy responded, rather than routing the traffic back out to the NLB to complete the TCP loop, Envoy replied natively via the host network to the pod's IP directly.
+# - The backend pod received a reply from the Node's IP (10.0.3.5) instead of the NLB IP (172.x.x.x), skipping the Connection Tracking tables and failing Cilium validation (POLICY_DENIED).
+
 - op: add
   path: /spec/infrastructure
   value:
@@ -6,5 +15,6 @@
       service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
       service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
       service.beta.kubernetes.io/aws-load-balancer-attributes: "load_balancing.cross_zone.enabled=true"
+      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: "preserve_client_ip.enabled=false"
       external-dns.alpha.kubernetes.io/hostname: "*.${DOMAIN}"
       external-dns.alpha.kubernetes.io/internal-hostname: "*.internal-test.${DOMAIN}"
