@@ -83,15 +83,6 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
-    # Kerberos / Active Directory
-    - toEndpoints:
-        - matchLabels:
-            app: samba
-      toPorts:
-        - port: "88"
-          protocol: "TCP"
-        - port: "88"
-          protocol: "UDP"
   ingress:
     - fromEndpoints:
         - matchLabels:
