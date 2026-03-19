@@ -12,6 +12,7 @@ spec:
     - toFQDNs:
         # TODO: narrow this down
         - matchPattern: "**.amazonaws.com"
+        - matchPattern: "**.${DOMAIN}"
     # Need to force DNS via Cilium
     # https://docs.cilium.io/en/stable/security/policy/language/#dns-obtaining-data
     - toEndpoints:
