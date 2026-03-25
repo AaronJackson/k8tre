@@ -38,6 +38,8 @@ spec:
               value: "{{index .path.segments 4}}"
             - name: DOMAIN
               value: "{{index .metadata.labels \"external-domain\"}}"
+            - name: REGION
+              value: "{{index .metadata.labels \"region\"}}"
       destination:
         server: "{{.server}}"
         namespace: "{{index .path.segments 1}}"

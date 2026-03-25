@@ -1,4 +1,4 @@
-clusterName: k8tre-dev
+clusterName: ${CLUSTER_NAME}
 serviceAccount:
   create: true
   name: aws-load-balancer-controller
@@ -7,8 +7,8 @@ serviceAccount:
 # then we need to specify the region and VPC
 # https://github.com/terraform-aws-modules/terraform-aws-eks/issues/3333
 # https://github.com/aws/eks-charts/blob/v0.0.210/stable/aws-load-balancer-controller/values.yaml#L164-L172
-region: eu-west-2
+region: ${REGION}
 vpcTags:
-  Name: k8tre-dev
+  Name: ${CLUSTER_NAME}
 
 logLevel: debug

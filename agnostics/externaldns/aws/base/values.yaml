@@ -9,7 +9,7 @@ aws:
 
 env:
   - name: AWS_DEFAULT_REGION
-    value: eu-west-2
+    value: ${REGION}
 
 serviceAccount:
   create: true
