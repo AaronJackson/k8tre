@@ -37,6 +37,7 @@ import json
 import secrets
 import string
 import sys
+from enum import Enum
 from pathlib import Path
 from typing import Annotated, Any, Dict, List, Optional
 
@@ -55,6 +56,11 @@ except ImportError:
     ClientError = None
 
 console = Console()
+
+
+class BackendType(str, Enum):
+    kubernetes = "kubernetes"
+    aws_ssm = "aws-ssm"
 
 
 class SecretGenerator:
@@ -171,7 +177,7 @@ class KubernetesBackend(SecretsBackend):
 class AWSParameterStoreBackend(SecretsBackend):
     def __init__(self, region: Optional[str] = None, prefix: str = ""):
         if boto3 is None:
-            console.print("[red]Error: 'boto3' module is required for 'aws-ssm' backend.[/red]")
+            console.print(f"[red]Error: 'boto3' module is required for '{BackendType.aws_ssm.value}' backend.[/red]")
             sys.exit(1)
 
         self.region = region
@@ -213,7 +219,7 @@ class AWSParameterStoreBackend(SecretsBackend):
         try:
             response = self.ssm.get_parameter(Name=self._get_name(secret_name), WithDecryption=True)
             return json.loads(response["Parameter"]["Value"])
-        except Exception:
+        except self.ssm.exceptions.ParameterNotFound:
             return {}
 
     def delete_secret(self, secret_name: str, dry_run: bool):
@@ -523,7 +529,7 @@ def main(
     merge_keys: Annotated[
         bool, typer.Option(help="Merge new keys into existing secrets without overwriting existing keys (default: False)")
     ] = False,
-    backend: Annotated[str, typer.Option(help="Backend to use: 'kubernetes' or 'aws-ssm'")] = "kubernetes",
+    backend: Annotated[BackendType, typer.Option(help="Backend to use")] = BackendType.kubernetes,
     region: Annotated[Optional[str], typer.Option(help="AWS backend: AWS Region (optional if configured in environment/profile)")] = None,
     prefix: Annotated[str, typer.Option(help="AWS backend: Prefix for AWS SSM parameters")] = "",
     config: Annotated[
@@ -556,13 +562,15 @@ def main(
 
     # Select Backend
     secrets_backend: SecretsBackend
-    if backend == "aws-ssm":
+    if backend == BackendType.aws_ssm:
         secrets_backend = AWSParameterStoreBackend(region=region, prefix=prefix)
-    else:
+    elif backend == BackendType.kubernetes:
         if not context:
             console.print("[red]Error: --context is required for kubernetes backend[/red]")
             raise typer.Exit(code=1)
         secrets_backend = KubernetesBackend(context=context, namespace=namespace)
+    else:
+        raise NotImplementedError(f"Invalid backend: {backend}")
 
     # Initialize secrets manager with backend
     manager = CISecretsManager(
