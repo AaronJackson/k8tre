@@ -12,7 +12,7 @@ CI Secrets Management for External Secrets Operator
 
 This script creates secrets in a backend store (Kubernetes Secrets or AWS Parameter Store)
 for use with External Secrets Operator in CI environments. It reads configuration from
-secrets.yaml and generates necessary passwords and keys automatically.
+ci-secrets.yaml and generates necessary passwords and keys automatically.
 
 The script supports three modes:
 - Create new secrets (default): Only creates secrets that don't exist
@@ -256,7 +256,7 @@ class CISecretsManager:
         self.skipped_secrets = []
         self.merged_secrets = []
 
-    def load_secrets_config(self, config_path: str = "secrets.yaml") -> Dict[str, Any]:
+    def load_secrets_config(self, config_path: str) -> Dict[str, Any]:
         """Load secrets configuration from YAML file."""
         try:
             config_file = Path(__file__).parent / config_path
