@@ -61,7 +61,7 @@ spec:
       labels:
         app: samba
       annotations:
-        external-dns.alpha.kubernetes.io/internal-hostname: "dc0.ad.${DOMAIN}"
+        external-dns.alpha.kubernetes.io/internal-hostname: "dc0.${DOMAIN}"
         external-dns.alpha.kubernetes.io/access: private
     spec:
       hostname: dc0      
