@@ -135,11 +135,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: samba
+  name: ad
   namespace: ad
   annotations:
-    external-dns.alpha.kubernetes.io/internal-hostname: "ad.${DOMAIN}."
-    external-dns.alpha.kubernetes.io/hostname: "ad.${DOMAIN}."
+    external-dns.alpha.kubernetes.io/internal-hostname: "*.${DOMAIN}"
+    external-dns.alpha.kubernetes.io/hostname: "*.${DOMAIN}"
 spec:
   selector:
     app: samba
