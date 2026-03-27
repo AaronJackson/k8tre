@@ -155,3 +155,16 @@ spec:
     - { name: "ldaps"      , port: 636 , targetPort: 636 , protocol: "TCP" }
     - { name: "ldap-gc"    , port: 3268, targetPort: 3268, protocol: "TCP" }
     - { name: "ldaps-gc"   , port: 3269, targetPort: 3269, protocol: "TCP" }
+
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: ad-pod-ns
+spec:
+  endpoints:
+  - dnsName: ad.${DOMAIN}
+    recordTTL: 60
+    recordType: NS
+    targets:
+      - dc0.ad.${DOMAIN}
