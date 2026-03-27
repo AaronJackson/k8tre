@@ -161,6 +161,7 @@ apiVersion: externaldns.k8s.io/v1alpha1
 kind: DNSEndpoint
 metadata:
   name: ad-pod-ns
+  namespace: ad
 spec:
   endpoints:
   - dnsName: ad.${DOMAIN}

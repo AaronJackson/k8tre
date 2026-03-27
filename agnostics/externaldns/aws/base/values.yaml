@@ -17,8 +17,8 @@ serviceAccount:
 
 sources:
   - gateway-httproute
-  - service
   - pod
+  - crd
   # - gateway-tlsroute
 
 policy: sync
