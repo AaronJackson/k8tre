@@ -139,6 +139,7 @@ metadata:
   namespace: ad
   annotations:
     external-dns.alpha.kubernetes.io/internal-hostname: "ad.${DOMAIN}"
+    external-dns.alpha.kubernetes.io/access: private
 spec:
   selector:
     app: samba
