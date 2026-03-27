@@ -60,9 +60,6 @@ spec:
     metadata:
       labels:
         app: samba
-        annotations:
-          external-dns.alpha.kubernetes.io/internal-hostname: "dc0.ad.${DOMAIN}"
-          external-dns.alpha.kubernetes.io/hostname: "dc0.ad.${DOMAIN}"
     spec:
       hostname: dc0      
       volumes:
@@ -142,7 +139,6 @@ metadata:
   namespace: ad
   annotations:
     external-dns.alpha.kubernetes.io/internal-hostname: "ad.${DOMAIN}"
-    external-dns.alpha.kubernetes.io/hostname: "ad.${DOMAIN}"
 spec:
   selector:
     app: samba
