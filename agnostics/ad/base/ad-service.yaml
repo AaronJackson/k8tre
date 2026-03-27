@@ -141,7 +141,6 @@ metadata:
     external-dns.alpha.kubernetes.io/internal-hostname: "ad.${DOMAIN}"
     external-dns.alpha.kubernetes.io/access: private
 spec:
-  externalTrafficPolicy: Cluster
   selector:
     app: samba
   type: ClusterIP
