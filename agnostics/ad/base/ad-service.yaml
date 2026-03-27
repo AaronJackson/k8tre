@@ -141,6 +141,7 @@ metadata:
     external-dns.alpha.kubernetes.io/internal-hostname: "ad.${DOMAIN}"
     external-dns.alpha.kubernetes.io/access: private
 spec:
+  internalTrafficPolicy: PreferSameZone
   selector:
     app: samba
   ports:
