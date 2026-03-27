@@ -137,9 +137,6 @@ kind: Service
 metadata:
   name: samba
   namespace: ad
-  annotations:
-    external-dns.alpha.kubernetes.io/internal-hostname: "samba.${DOMAIN}"
-    external-dns.alpha.kubernetes.io/hostname: "samba.${DOMAIN}"
 spec:
   selector:
     app: samba
