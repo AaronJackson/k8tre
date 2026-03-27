@@ -17,6 +17,7 @@ serviceAccount:
 
 sources:
   - gateway-httproute
+  - service
   # - gateway-tlsroute
 
 policy: sync
