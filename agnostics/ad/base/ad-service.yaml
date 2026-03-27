@@ -60,6 +60,9 @@ spec:
     metadata:
       labels:
         app: samba
+      annotations:
+        external-dns.alpha.kubernetes.io/internal-hostname: "ad.${DOMAIN}"
+        external-dns.alpha.kubernetes.io/access: private
     spec:
       hostname: dc0      
       volumes:
@@ -137,13 +140,9 @@ kind: Service
 metadata:
   name: samba
   namespace: ad
-  annotations:
-    external-dns.alpha.kubernetes.io/internal-hostname: "ad.${DOMAIN}"
-    external-dns.alpha.kubernetes.io/access: private
 spec:
   selector:
     app: samba
-  type: NodePort
   ports:
     - { name: "dns-udp"    , port: 53  , targetPort: 53  , protocol: "UDP" }
     - { name: "dns-tcp"    , port: 53  , targetPort: 53  , protocol: "TCP" }
