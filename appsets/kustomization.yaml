@@ -19,6 +19,7 @@ resources:
   - agnostics/storage-class.yaml
   - agnostics/object-storage.yaml
   - agnostics/ad.yaml
+  - agnostics/hic-mssql.yaml
   - federation/cr8tor.yaml
   - identity/keycloak.yaml
   - identity/backend.yaml

@@ -120,7 +120,7 @@ spec:
                 command:
                   - "sh"
                   - "-c"
-                  - "/samba-start.sh 2>&1 > /startup.log"
+                  - "/samba-start.sh 2>&1 | tee /startup.log"
           livenessProbe:
             exec:
               command:

@@ -4,12 +4,17 @@ kind: Kustomization
 resources:
   - ad-service.yaml
   - keytab-job.yaml
+  - dnsupdate-job.yaml
 
 configMapGenerator:
   - name: keytab-job-scripts
     namespace: ad
     files:
       - keytab-job.sh
+  - name: dnsupdate-job-scripts
+    namespace: ad
+    files:
+      - dnsupdate-job.sh
   - name: samba-init-scripts
     namespace: ad
     files:

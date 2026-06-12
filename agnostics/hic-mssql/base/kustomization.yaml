@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - mssql-service.yaml
+
+
+configMapGenerator:
+  - name: mssql-init-scripts
+    namespace: ad
+    files:
+      - mssql-init.sh

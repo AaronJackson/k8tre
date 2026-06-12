@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: samba-dnsupdater
+  namespace: ad
+automountServiceAccountToken: true
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: samba-dnsupdater
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: ["",  "apps", "extensions"]
+    resources: ["configmaps", "deployments"]
+    verbs: ["get", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: samba-dnsupdater
+subjects:
+  - kind: ServiceAccount
+    name: samba-dnsupdater
+    namespace: ad
+roleRef:
+  kind: ClusterRole
+  name: samba-dnsupdater
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dnsupdater-job
+  namespace: ad
+spec:
+  schedule: "* * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: samba-dnsupdater
+          restartPolicy: OnFailure
+          volumes:
+            - name: keytab
+              configMap:
+                defaultMode: 0600
+                name: administrator.keytab
+            - name: scripts
+              configMap:
+                defaultMode: 0770
+                name: dnsupdate-job-scripts
+            - name: krb5
+              configMap:
+                name: krb5.conf
+                defaultMode: 0444
+          containers:
+          - name: keytab-generator
+            image: ghcr.io/aaronjackson/k8tre-samba-dc:main
+            imagePullPolicy: IfNotPresent
+            volumeMounts:
+              - mountPath: /Administrator.keytab
+                name: keytab
+                subPath: Administrator.keytab
+              - mountPath: /dnsupdate-job.sh
+                name: scripts
+                subPath: dnsupdate-job.sh
+              - name: krb5
+                subPath: config
+                mountPath: /etc/krb5.conf
+            command:
+              - /dnsupdate-job.sh
