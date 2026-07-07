@@ -10,3 +10,9 @@ configMapGenerator:
     namespace: ad
     files:
       - mssql-init.sh
+
+  # This will be globbed by the ad service and executed there
+  - name: custom-samba-start-mssql
+    namespace: ad
+    files:
+      - mssql-spn.sh
