@@ -1,6 +1,5 @@
 realm="ad.${DOMAIN}"
 REALM=$(echo "${realm}" | tr '[:lower:]' '[:upper:]')
-KRB5CCNAME="/Administrator.ccache"
 
 (samba-tool user list | grep ^MSSQL$) || (
     # Usage: samba-tool user create <username> [<password>] [options]
@@ -17,9 +16,6 @@ KRB5CCNAME="/Administrator.ccache"
     samba-tool spn add host/sql MSSQL
     samba-tool spn add host/sql.$REALM MSSQL
     samba-tool spn add host/mssql.ad.svc.cluster.local
-
-    # Usage: samba-tool dns add <server> <zone> <name> <type> <data> [options]
-    samba-tool dns add dc0.$realm $REALM sql CNAME mssql.ad.svc.cluster.local --use-krb5-ccache="$KRB5CCNAME"
 )
 
 # Update the SQL$ and MSSQL keytab containing relevant host SPNs.
