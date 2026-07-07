@@ -1,7 +1,11 @@
+realm="ad.${DOMAIN}"
+REALM=$(echo "${realm}" | tr '[:lower:]' '[:upper:]')
+KRB5CCNAME="/Administrator.ccache"
+
 (samba-tool user list | grep ^MSSQL$) || (
     # Usage: samba-tool user create <username> [<password>] [options]
+    echo "Creating MSSQL user"
     samba-tool user create --random-password MSSQL
-    samba-tool user setpassword MSSQL --newpassword='X2T%Tp5b89V%WzXD!tq'
     samba-tool user setexpiry MSSQL --noexpiry
 
     # Usage: samba-tool spn add <name> <user> [options]
