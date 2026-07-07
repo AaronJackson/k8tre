@@ -4,13 +4,7 @@ kind: Kustomization
 resources:
   - mssql-service.yaml
 
-
 configMapGenerator:
-  - name: mssql-init-scripts
-    namespace: ad
-    files:
-      - mssql-init.sh
-
   # This will be globbed by the ad service and executed there
   - name: custom-samba-start-mssql
     namespace: ad

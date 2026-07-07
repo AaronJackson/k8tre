@@ -74,10 +74,6 @@ spec:
           configMap:
             name: mssql.conf
             defaultMode: 444
-        - name: mssql-init-scripts
-          configMap:
-            name: mssql-init-scripts
-            defaultMode: 0770
         - name: keytab
           configMap:
             defaultMode: 0600
